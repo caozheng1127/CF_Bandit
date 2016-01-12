@@ -46,14 +46,19 @@ class ArticleManager():
 		
 		articles_id = {}
 		mask = self.generateMasks()
-
-		for i in range(self.ArticleGroups):
-			articles_id[i] = range((self.n_articles*i)/self.ArticleGroups, (self.n_articles*(i+1))/self.ArticleGroups)
-
-			for key in articles_id[i]:
-				featureVector = np.multiply(featureUniform(self.dimension, {}), mask[i])
+		if (self.ArticleGroups == 0):
+			for key in range(self.n_articles):
+				featureVector = featureUniform(self.dimension, {})
 				l2_norm = np.linalg.norm(featureVector, ord =2)
 				articles.append(Article(key, featureVector/l2_norm ))
+		else:
+			for i in range(self.ArticleGroups):
+				articles_id[i] = range((self.n_articles*i)/self.ArticleGroups, (self.n_articles*(i+1))/self.ArticleGroups)
+
+				for key in articles_id[i]:
+					featureVector = np.multiply(featureUniform(self.dimension, {}), mask[i])
+					l2_norm = np.linalg.norm(featureVector, ord =2)
+					articles.append(Article(key, featureVector/l2_norm ))
 
 		# Hardcode five article groups
 		'''

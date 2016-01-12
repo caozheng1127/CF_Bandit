@@ -1,4 +1,5 @@
 import numpy as np
+import random
 class LinUCBUserStruct:
 	def __init__(self, featureDimension, lambda_, init="zero"):
 		self.d = featureDimension
@@ -25,7 +26,7 @@ class LinUCBUserStruct:
 	def getProb(self, alpha, article_FeatureVector):
 		mean = np.dot(self.UserTheta,  article_FeatureVector)
 		var = np.sqrt(np.dot(np.dot(article_FeatureVector, self.AInv),  article_FeatureVector))
-		pta = mean + alpha * var
+		pta = mean# + alpha * var
 		return pta
 	def getProb_plot(self, alpha, article_FeatureVector):
 		mean = np.dot(self.UserTheta,  article_FeatureVector)
@@ -46,21 +47,22 @@ class Uniform_LinUCBAlgorithm(object):
 		articlePicked = None
 
 		for x in pool_articles:
-			x_pta = self.USER.getProb(self.alpha, x.contextFeatureVector[:self.dimension])
+			x_pta = self.USER.getProb(self.alpha, x.featureVector[:self.dimension])
 			if maxPTA < x_pta:
 				articlePicked = x
 				maxPTA = x_pta
 		return articlePicked
 	def updateParameters(self, articlePicked, click, userID):
-		self.USER.updateParameters(articlePicked.contextFeatureVector[:self.dimension], click)
+		self.USER.updateParameters(articlePicked.featureVector[:self.dimension], click)
 	def getCoTheta(self, userID):
 		return self.USER.UserTheta
 
 
 
 #---------------LinUCB(fixed user order) algorithm---------------
-class N_LinUCBAlgorithm:
+class N_LinEgreedyAlgorithm:
 	def __init__(self, dimension, alpha, lambda_, n, init="zero"):  # n is number of users
+		self.time = 1
 		self.users = []
 		#algorithm have n users, each user has a user structure
 		for i in range(n):
@@ -77,46 +79,24 @@ class N_LinUCBAlgorithm:
 		articlePicked = None
 
 		for x in pool_articles:
-			x_pta = self.users[userID].getProb(self.alpha, x.contextFeatureVector[:self.dimension])
+			x_pta = self.users[userID].getProb(self.alpha, x.featureVector[:self.dimension])
 			# pick article with highest Prob
 			if maxPTA < x_pta:
 				articlePicked = x
 				maxPTA = x_pta
 
-		return articlePicked
-	def getProb(self, pool_articles, userID):
-		means = []
-		vars = []
-		for x in pool_articles:
-			x_pta, mean, var = self.users[userID].getProb_plot(self.alpha, x.contextFeatureVector[:self.dimension])
-			means.append(mean)
-			vars.append(var)
-		return means, vars
+		epsilon = self.get_epsilon()
+		if random.random() > epsilon:
+			return articlePicked
+		else:
+			return random.choice(pool_articles) 
+
+	def get_epsilon(self):
+		return min(100/self.time, 1)
 
 	def updateParameters(self, articlePicked, click, userID):
-		self.users[userID].updateParameters(articlePicked.contextFeatureVector[:self.dimension], click)
+		self.time += 1
+		self.users[userID].updateParameters(articlePicked.featureVector[:self.dimension], click)
 		
 	def getCoTheta(self, userID):
 		return self.users[userID].UserTheta
-
-
-#-----------LinUCB select user algorithm-----------
-class LinUCB_SelectUserAlgorithm(N_LinUCBAlgorithm):
-	def __init__(self, dimension, alpha, lambda_, n):  # n is number of users
-		N_LinUCBAlgorithm.__init__(self, dimension, alpha, lambda_, n)
-
-	def decide(self, pool_articles, AllUsers):
-		maxPTA = float('-inf')
-		articlePicked = None
-		userPicked = None
-		
-		for x in pool_articles:
-			for user in AllUsers:
-				x_pta = self.users[user.id].getProb(self.alpha, x.contextFeatureVector[:self.dimension])
-				# pick article with highest Prob
-				if maxPTA < x_pta:
-					articlePicked = x
-					userPicked = user
-					maxPTA = x_pta
-
-		return userPicked, articlePicked

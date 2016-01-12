@@ -1,5 +1,6 @@
+import copy
 import numpy as np
-from random import sample
+from random import sample, shuffle
 from scipy.sparse import csgraph
 import datetime
 import os.path
@@ -10,13 +11,13 @@ from util_functions import featureUniform
 from Articles import ArticleManager
 from Users import UserManager
 from LinUCB import N_LinUCBAlgorithm, Uniform_LinUCBAlgorithm
-from GOBLin import GOBLinAlgorithm
-from CoLin import AsyCoLinUCBAlgorithm, syncCoLinUCBAlgorithm
-from W_W0Alg import W_W0_Algorithm
-from W_Alg import WAlgorithm, WknowThetaAlgorithm
+from LinEgreedy import N_LinEgreedyAlgorithm
+from CF_UCB import CFUCBAlgorithm
+from CFEgreedy import CFEgreedyAlgorithm
+from EgreedyContextual import EgreedyContextualStruct
 
 class simulateOnlineData(object):
-	def __init__(self, dimension, iterations, articles, users, 
+	def __init__(self, context_dimension, latent_dimension, training_iterations, testing_iterations, testing_method, plot, articles, users, 
 					batchSize = 1000,
 					noise = lambda : 0,
 					matrixNoise = lambda:0,
@@ -30,8 +31,13 @@ class simulateOnlineData(object):
 		self.simulation_signature = signature
 		self.type = type_
 
-		self.dimension = dimension
-		self.iterations = iterations
+		self.context_dimension = context_dimension
+		self.latent_dimension = latent_dimension
+		self.training_iterations = training_iterations
+		self.testing_iterations = testing_iterations
+		self.testing_method = testing_method
+		self.plot = plot
+
 		self.noise = noise
 		self.matrixNoise = matrixNoise # noise to be added to W
 		self.NoiseScale = NoiseScale
@@ -120,7 +126,7 @@ class simulateOnlineData(object):
 
 	def CoTheta(self):
 		for ui in self.users:
-			ui.CoTheta = np.zeros(self.dimension)
+			ui.CoTheta = np.zeros(self.context_dimension+self.latent_dimension)
 			for uj in self.users:
 				ui.CoTheta += self.W[uj.id][ui.id] * np.asarray(uj.theta)
 			print 'Users', ui.id, 'CoTheta', ui.CoTheta	
@@ -137,11 +143,13 @@ class simulateOnlineData(object):
 
 	def GetOptimalReward(self, user, articlePool):		
 		maxReward = float('-inf')
+		maxx = None
 		for x in articlePool:	 
 			reward = self.getReward(user, x)
 			if reward > maxReward:
 				maxReward = reward
-		return maxReward
+				maxx = x
+		return maxReward, x
 	
 	def getL2Diff(self, x, y):
 		return np.linalg.norm(x-y) # L2 norm
@@ -190,8 +198,37 @@ class simulateOnlineData(object):
 			f.write('\n')
 		'''
 		
-		# Loop begin
-		for iter_ in range(self.iterations):
+
+		# Training
+		shuffle(self.articles)
+		for iter_ in range(self.training_iterations):
+			article = self.articles[iter_]										
+			for u in self.users:
+				noise = self.noise()	
+				reward = self.getReward(u, article)
+				reward += noise										
+				for alg_name, alg in algorithms.items():
+					alg.updateParameters(article, reward, u.id)	
+
+			if 'syncCoLinUCB' in algorithms:
+				algorithms['syncCoLinUCB'].LateUpdate()	
+
+
+				'''
+				with open(filenameWriteRegret, 'a+') as f:
+					f.write(str(iter_))
+					f.write(',' + ','.join([str(BatchCumlateRegret[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
+					f.write('\n')
+				with open(filenameWritePara, 'a+') as f:
+					f.write(str(iter_))
+					f.write(',' + ','.join([str(CoThetaDiffList[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
+					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
+					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
+					f.write('\n')
+				'''
+		# self.articles = self.articles[self.training_iterations:]
+		#Testing
+		for iter_ in range(self.testing_iterations):
 			# prepare to record theta estimation error
 			for alg_name, alg in algorithms.items():
 				if alg.CanEstimateUserPreference:
@@ -206,12 +243,14 @@ class simulateOnlineData(object):
 
 				noise = self.noise()
 				#get optimal reward for user x at time t
-				OptimalReward = self.GetOptimalReward(u, self.articlePool) + noise
+				OptimalReward, OptimalArticle = self.GetOptimalReward(u, self.articlePool) 
+				OptimalReward += noise
 							
 				for alg_name, alg in algorithms.items():
 					pickedArticle = alg.decide(self.articlePool, u.id)
 					reward = self.getReward(u, pickedArticle) + noise
-					alg.updateParameters(pickedArticle, reward, u.id)
+					if (self.testing_method=="online"): # for batch test, do not update while testing
+						alg.updateParameters(pickedArticle, reward, u.id)
 
 					regret = OptimalReward - reward	
 					AlgRegret[alg_name].append(regret)
@@ -220,7 +259,7 @@ class simulateOnlineData(object):
 					if alg.CanEstimateUserPreference:
 						ThetaDiff[alg_name] += self.getL2Diff(u.theta, alg.getTheta(u.id))
 					if alg.CanEstimateCoUserPreference:
-						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta, alg.getCoTheta(u.id))
+						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta[:context_dimension], alg.getCoTheta(u.id)[:context_dimension])
 					if alg.CanEstimateW:
 						WDiff[alg_name] += self.getL2Diff(self.W.T[u.id], alg.getW(u.id))	
 			
@@ -240,59 +279,67 @@ class simulateOnlineData(object):
 				tim_.append(iter_)
 				for alg_name in algorithms.iterkeys():
 					BatchCumlateRegret[alg_name].append(sum(AlgRegret[alg_name]))
-				'''
-				with open(filenameWriteRegret, 'a+') as f:
-					f.write(str(iter_))
-					f.write(',' + ','.join([str(BatchCumlateRegret[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
-					f.write('\n')
-				with open(filenameWritePara, 'a+') as f:
-					f.write(str(iter_))
-					f.write(',' + ','.join([str(CoThetaDiffList[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
-					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
-					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
-					f.write('\n')
-				'''
-					
-		# plot the results	
-		f, axa = plt.subplots(2, sharex=True)
-		for alg_name in algorithms.iterkeys():	
-			axa[0].plot(tim_, BatchCumlateRegret[alg_name],label = alg_name)
-			print '%s: %.2f' % (alg_name, BatchCumlateRegret[alg_name][-1])
-		axa[0].legend(loc='lower right',prop={'size':9})
-		axa[0].set_xlabel("Iteration")
-		axa[0].set_ylabel("Regret")
-		axa[0].set_title("Accumulated Regret")
-		
-		# plot the estimation error of co-theta
-		time = range(self.iterations)
-		for alg_name, alg in algorithms.items():
-			if alg.CanEstimateUserPreference:
-				axa[1].plot(time, ThetaDiffList[alg_name], label = alg_name + '_Theta')
-			if alg.CanEstimateCoUserPreference:
-				axa[1].plot(time, CoThetaDiffList[alg_name], label = alg_name + '_CoTheta')
-		
-		axa[1].legend(loc='upper right',prop={'size':6})
-		axa[1].set_xlabel("Iteration")
-		axa[1].set_ylabel("L2 Diff")
-		axa[1].set_yscale('log')
-		axa[1].set_title("Parameter estimation error")
-		plt.show()
+
+		if (self.plot==True): # only plot
+			# plot the results	
+			f, axa = plt.subplots(1, sharex=True)
+			for alg_name in algorithms.iterkeys():	
+				axa.plot(tim_, BatchCumlateRegret[alg_name],label = alg_name)
+				print '%s: %.2f' % (alg_name, BatchCumlateRegret[alg_name][-1])
+			axa.legend(loc='upper left',prop={'size':9})
+			axa.set_xlabel("Iteration")
+			axa.set_ylabel("Regret")
+			axa.set_title("Accumulated Regret")
+			plt.show()
+
+			# plot the estimation error of co-theta
+			f, axa = plt.subplots(1, sharex=True)
+			time = range(self.testing_iterations)
+			for alg_name, alg in algorithms.items():
+				if alg.CanEstimateUserPreference:
+					axa.plot(time, ThetaDiffList[alg_name], label = alg_name + '_Theta')
+				if alg.CanEstimateCoUserPreference:
+					axa.plot(time, CoThetaDiffList[alg_name], label = alg_name + '_CoTheta')
+				
+			axa.legend(loc='upper right',prop={'size':6})
+			axa.set_xlabel("Iteration")
+			axa.set_ylabel("L2 Diff")
+			axa.set_yscale('log')
+			axa.set_title("Parameter estimation error")
+			plt.show()
+
+		# for alg_name, alg in algorithms.items():
+		# 	if alg_name in ['CFUCB', 'LinUCB']:
+		# 		print alg_name, alg.users[1].getTheta()
+		# CFUCB = algorithms['CFUCB_random']
+		# for i in range(10):
+		# 	print CFUCB.articles[i].V
+
+		finalRegret = {}
+		for alg_name in algorithms.iterkeys():
+			finalRegret[alg_name] = BatchCumlateRegret[alg_name][:-1]
+		return finalRegret
+
 
 if __name__ == '__main__':
-	iterations = 300
+	training_iterations = 0
+	testing_iterations = 1000
+	#iterations = 300
 	NoiseScale = .01
 
-	dimension = 5
-	alpha  = 0.2
+	context_dimension = 20
+	latent_dimension = 5
+
+	alpha  = 0.6
 	lambda_ = 0.1   # Initialize A
 	epsilon = 0 # initialize W
 	eta_ = 0.1
 
 	n_articles = 1000
-	ArticleGroups = 5
+	ArticleGroups = 0
 
 	n_users = 10
-	UserGroups = 5	
+	UserGroups = 0
 	
 	poolSize = 10
 	batchSize = 10
@@ -307,25 +354,31 @@ if __name__ == '__main__':
 	G_lambda_ = lambda_
 	Gepsilon = 1
 	
-	userFilename = os.path.join(sim_files_folder, "users_"+str(n_users)+"+dim-"+str(dimension)+ "Ugroups" + str(UserGroups)+".json")
+	userFilename = os.path.join(sim_files_folder, "users_"+str(n_users)+"context_"+str(context_dimension)+"latent_"+str(latent_dimension)+ "Ugroups" + str(UserGroups)+".json")
 	
 	#"Run if there is no such file with these settings; if file already exist then comment out the below funciton"
 	# we can choose to simulate users every time we run the program or simulate users once, save it to 'sim_files_folder', and keep using it.
-	UM = UserManager(dimension, n_users, UserGroups = UserGroups, thetaFunc=featureUniform, argv={'l2_limit':1})
-	#users = UM.simulateThetafromUsers()
-	#UM.saveUsers(users, userFilename, force = False)
+	UM = UserManager(context_dimension+latent_dimension, n_users, UserGroups = UserGroups, thetaFunc=featureUniform, argv={'l2_limit':1})
+	# users = UM.simulateThetafromUsers()
+	# UM.saveUsers(users, userFilename, force = False)
 	users = UM.loadUsers(userFilename)
 
-	articlesFilename = os.path.join(sim_files_folder, "articles_"+str(n_articles)+"+dim"+str(dimension) + "Agroups" + str(ArticleGroups)+".json")
+	articlesFilename = os.path.join(sim_files_folder, "articles_"+str(n_articles)+"context_"+str(context_dimension)+"latent_"+str(latent_dimension)+ "Agroups" + str(ArticleGroups)+".json")
 	# Similarly, we can choose to simulate articles every time we run the program or simulate articles once, save it to 'sim_files_folder', and keep using it.
-	AM = ArticleManager(dimension, n_articles=n_articles, ArticleGroups = ArticleGroups,
+	AM = ArticleManager(context_dimension+latent_dimension, n_articles=n_articles, ArticleGroups = ArticleGroups,
 			FeatureFunc=featureUniform,  argv={'l2_limit':1})
-	#articles = AM.simulateArticlePool()
-	#AM.saveArticles(articles, articlesFilename, force=False)
+	# articles = AM.simulateArticlePool()
+	# AM.saveArticles(articles, articlesFilename, force=False)
 	articles = AM.loadArticles(articlesFilename)
+	for i in range(len(articles)):
+		articles[i].contextFeatureVector = articles[i].featureVector[:context_dimension]
 
-	simExperiment = simulateOnlineData(dimension  = dimension,
-						iterations = iterations,
+	simExperiment = simulateOnlineData(context_dimension = context_dimension,
+						latent_dimension = latent_dimension,
+						training_iterations = training_iterations,
+						testing_iterations = testing_iterations,
+						testing_method = "online", # batch or online
+						plot = True,
 						articles=articles,
 						users = users,		
 						noise = lambda : np.random.normal(scale = NoiseScale),
@@ -340,17 +393,33 @@ if __name__ == '__main__':
 
 	algorithms = {}
 	
-	algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
-	algorithms['GOBLin'] = GOBLinAlgorithm( dimension= dimension, alpha = G_alpha, lambda_ = G_lambda_, n = n_users, W = simExperiment.getGW() )
-	algorithms['syncCoLinUCB'] = syncCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
-	algorithms['AsyncCoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+	# algorithms['CFContextual'] = EgreedyContextualStruct(Tu= 200, m=10, lambd=0.1, alpha=0, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension,  feature_dim = context_dimension, init='zero')	
+	# algorithms['EgreedyNonContextual'] = EgreedyStruct(Tu= 200, m=10, lambd=0.1, alpha=100, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, init='random')
+	# algorithms['CF'] = EgreedyStruct(Tu= 200, m=10, lambd=0.1, alpha=0, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, init='random')
+
+	algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
+	# algorithms['LinEgreedy'] = N_LinEgreedyAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)	
+	#algorithms['LinUCBRandom'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, init="random")
+	
+	#algorithms['GOBLin'] = GOBLinAlgorithm( dimension= dimension, alpha = G_alpha, lambda_ = G_lambda_, n = n_users, W = simExperiment.getGW() )
+	#algorithms['syncCoLinUCB'] = syncCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+	#algorithms['AsyncCoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+	algorithms['EgreedySGDLrConstant'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='constant')
+	algorithms['EgreedySGDLrDecay'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension,  feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='decay')
 	
 	#algorithms['UniformLinUCB'] = Uniform_LinUCBAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_)
 	#algorithms['WCoLinUCB'] =  WAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_, eta_ = eta_, n = n_users)
 	#algorithms['WknowTheta'] = WknowThetaAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_, eta_ = eta_, n = n_users, theta = simExperiment.getTheta())
 	#algorithms['W_W0'] = W_W0_Algorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_, eta_ = eta_, n = n_users, W0 = simExperiment.getW0())
 
-	#algorithms['eGreedy'] = eGreedyAlgorithm(epsilon = eGreedy)
+	#algorithms['eGreedy'] = eGreedyAlgorithm(epsilon = 0.1)
 	#algorithms['UCB1'] = UCB1Algorithm()
-	
+
+	algorithms['ALSUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['ALSEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	# algorithms['CFEgreedy10'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
+	algorithms['CFUCB2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	# algorithms['CFEgreedy2'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
+
 	simExperiment.runAlgorithms(algorithms)

@@ -1,0 +1,225 @@
+import numpy as np
+class CFUCBArticleStruct:
+	def __init__(self, id, context_dimension, latent_dimension, lambda_, init="zero", context_feature=None):
+		self.id = id
+		self.context_dimension = context_dimension
+		self.latent_dimension = latent_dimension
+		self.d = context_dimension+latent_dimension
+
+		self.A2 = lambda_*np.identity(n = self.latent_dimension)
+		self.b2 = np.zeros(self.latent_dimension)
+		self.A2Inv = np.linalg.inv(self.A2)
+
+		self.count = {}
+
+		if (init=="random"):
+			self.V = np.random.rand(self.d)
+		else:
+			self.V = np.zeros(self.d)
+
+	def updateParameters(self, user, click):
+		if user.id in self.count:
+			self.count[user.id] += 1
+		else:
+			self.count[user.id] = 1
+
+		self.A2 += np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+		self.b2 += user.U[self.context_dimension:]*(click - user.U[:self.context_dimension].dot(self.V[:self.context_dimension]))
+		self.A2Inv  = np.linalg.inv(self.A2)
+
+		self.V[self.context_dimension:] = np.dot(self.A2Inv, self.b2)
+
+	def getCount(self, user_id):
+		if user_id in self.count:
+			return self.count[user_id]
+		else:
+			return 0
+class CFUCBUserStruct:
+	def __init__(self, id, context_dimension, latent_dimension, lambda_, init="zero"):
+		self.id = id
+		self.context_dimension = context_dimension
+		self.latent_dimension = latent_dimension
+		self.d = context_dimension+latent_dimension
+
+		self.A = lambda_*np.identity(n = self.d)
+		self.b = np.zeros(self.d)
+		self.AInv = np.linalg.inv(self.A)
+
+		self.count = {}
+
+		if (init=="random"):
+			self.U = np.random.rand(self.d)
+		else:
+			self.U = np.zeros(self.d)
+		self.U = np.zeros(self.d)
+	def updateParameters(self, article, click):
+		if article.id in self.count:
+			self.count[article.id] += 1
+		else:
+			self.count[article.id] = 1
+
+		self.A += np.outer(article.V,article.V)
+		self.b += article.V*click
+		self.AInv = np.linalg.inv(self.A)				
+
+		self.U = np.dot(self.AInv, self.b)		
+	def getTheta(self):
+		return self.U
+	
+	def getA(self):
+		return self.A
+
+	def getProb(self, alpha, article):
+		mean = np.dot(self.U, article.V)
+		var = np.sqrt(np.dot(np.dot(article.V, self.AInv),  article.V))
+		var2 = np.sqrt(np.dot(np.dot(self.U[self.context_dimension:], article.A2Inv),  self.U[self.context_dimension:]))
+		pta = mean + alpha * var + alpha*var2
+		return pta
+	def getProb_plot(self, alpha, article):
+		mean = np.dot(self.U, article.V)
+		var = np.sqrt(np.dot(np.dot(article.V, self.AInv),  article.V))
+		var2 = np.sqrt(np.dot(np.dot(self.U[self.context_dimension:], article.A2Inv),  self.U[self.context_dimension:]))
+		pta = mean + alpha * var #+ alpha*var2
+		return pta, mean, alpha*var
+
+	def getCount(self, article_id):
+		if article_id in self.count:
+			return self.count[article_id]
+		else:
+			return 0
+class CFUCBAlgorithm:
+	def __init__(self, context_dimension, latent_dimension, alpha, lambda_, n, itemNum, init="zero", ):  # n is number of users
+
+		self.context_dimension = context_dimension
+		self.latent_dimension = latent_dimension
+		self.d = context_dimension + latent_dimension
+		
+		self.users = []
+		#algorithm have n users, each user has a user structure
+		for i in range(n):
+			self.users.append(CFUCBUserStruct(i, context_dimension, latent_dimension, lambda_ , init)) 
+		self.articles = []
+		for i in range(itemNum):
+			self.articles.append(CFUCBArticleStruct(i, context_dimension, latent_dimension, lambda_ , init)) 
+
+		self.alpha = alpha
+		self.alpha2 = alpha
+
+		self.CanEstimateUserPreference = False
+		self.CanEstimateCoUserPreference = True 
+		self.CanEstimateW = False
+	def decide(self, pool_articles, userID):
+		maxPTA = float('-inf')
+		articlePicked = None
+
+		for x in pool_articles:
+			self.articles[x.id].V[:self.context_dimension] = x.contextFeatureVector[:self.context_dimension]
+			x_pta = self.users[userID].getProb(self.alpha, self.articles[x.id])
+
+			# pick article with highest Prob
+			# print x_pta 
+			if maxPTA < x_pta:
+				articlePicked = x
+				maxPTA = x_pta
+				
+		return articlePicked
+
+	def getProb(self, pool_articles, userID):
+		means = []
+		vars = []
+		for x in pool_articles:
+			self.articles[x.id].V[:self.context_dimension] = x.contextFeatureVector[:self.context_dimension]
+			x_pta, mean, var = self.users[userID].getProb_plot(self.alpha, self.articles[x.id])
+			means.append(mean)
+			vars.append(var)
+		return means, vars
+
+	def updateParameters(self, articlePicked, click, userID):
+		# article = self.articles[articlePicked.id]
+		# user = self.users[userID]
+
+		for iteration in range(0):
+			self.users[userID].updateParameters(self.articles[articlePicked.id], click)
+			self.articles[articlePicked.id].updateParameters(self.users[userID], click)
+
+		#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+
+		self.users[userID].updateParameters(self.articles[articlePicked.id], click)
+
+		# user = self.users[userID]
+		#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+
+
+		# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
+		self.articles[articlePicked.id].updateParameters(self.users[userID], click)
+		# article = self.articles[articlePicked.id]
+		# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
+
+	def getCoTheta(self, userID):
+		return self.users[userID].U
+
+
+class CFUCBAlgorithm:
+	def __init__(self, context_dimension, latent_dimension, alpha, lambda_, n, itemNum, init="zero", ):  # n is number of users
+
+		self.context_dimension = context_dimension
+		self.latent_dimension = latent_dimension
+		self.d = context_dimension + latent_dimension
+		
+		self.users = []
+		#algorithm have n users, each user has a user structure
+		for i in range(n):
+			self.users.append(CFUCBUserStruct(i, context_dimension, latent_dimension, lambda_ , init)) 
+		self.articles = []
+		for i in range(itemNum):
+			self.articles.append(CFUCBArticleStruct(i, context_dimension, latent_dimension, lambda_ , init)) 
+
+		self.alpha = alpha
+		self.alpha2 = alpha
+
+		self.CanEstimateUserPreference = False
+		self.CanEstimateCoUserPreference = True 
+		self.CanEstimateW = False
+	def decide(self, pool_articles, userID):
+		maxPTA = float('-inf')
+		articlePicked = None
+
+		for x in pool_articles:
+			self.articles[x.id].V[:self.context_dimension] = x.contextFeatureVector[:self.context_dimension]
+			x_pta = self.users[userID].getProb(self.alpha, self.articles[x.id])
+
+			# pick article with highest Prob
+			# print x_pta 
+			if maxPTA < x_pta:
+				articlePicked = x
+				maxPTA = x_pta
+				
+		return articlePicked
+
+	def getProb(self, pool_articles, userID):
+		means = []
+		vars = []
+		for x in pool_articles:
+			self.articles[x.id].V[:self.context_dimension] = x.contextFeatureVector[:self.context_dimension]
+			x_pta, mean, var = self.users[userID].getProb_plot(self.alpha, self.articles[x.id])
+			means.append(mean)
+			vars.append(var)
+		return means, vars
+
+	def updateParameters(self, articlePicked, click, userID):
+		article = self.articles[articlePicked.id]
+		user = self.users[userID]
+
+		#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+		self.users[userID].updateParameters(self.articles[articlePicked.id], click)
+		user = self.users[userID]
+		#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+
+
+		# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
+		self.articles[articlePicked.id].updateParameters(self.users[userID], click)
+		article = self.articles[articlePicked.id]
+		# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
+
+	def getCoTheta(self, userID):
+		return self.users[userID].U

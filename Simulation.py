@@ -415,8 +415,8 @@ if __name__ == '__main__':
 	#algorithms['eGreedy'] = eGreedyAlgorithm(epsilon = 0.1)
 	#algorithms['UCB1'] = UCB1Algorithm()
 
-	algorithms['ALSUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
-	algorithms['ALSEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFEgreedy10'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
 	algorithms['CFUCB2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')

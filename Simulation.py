@@ -52,7 +52,8 @@ class simulateOnlineData(object):
 		#self.W = self.initializeW(epsilon)
 		#self.GW = self.initializeGW(Gepsilon)
 		self.W, self.W0 = self.constructAdjMatrix(sparseLevel)
-		self.GW = self.constructLaplacianMatrix(self.W, Gepsilon)
+		W = self.W.copy()
+		self.GW = self.constructLaplacianMatrix(W, Gepsilon)
 		
 	def constructGraph(self):
 		n = len(self.users)	

@@ -89,7 +89,7 @@ class CFUCBUserStruct:
 			return 0
 
 class CFUCBAlgorithm:
-	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, init="zero", ):  # n is number of users
+	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, init="zero", window_size = 1):  # n is number of users
 
 		self.context_dimension = context_dimension
 		self.latent_dimension = latent_dimension
@@ -105,6 +105,9 @@ class CFUCBAlgorithm:
 
 		self.alpha = alpha
 		self.alpha2 = alpha2
+
+		self.window_size = window_size
+		self.window = []
 
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True 
@@ -136,19 +139,23 @@ class CFUCBAlgorithm:
 		return means, vars
 
 	def updateParameters(self, articlePicked, click, userID):
-		article = self.articles[articlePicked.id]
-		user = self.users[userID]
+		if len(self.window)%self.window_size == 0:
+			self.window.append((articlePicked, click, userID))
+			for articlePicked, click, userID in self.window:
+				article = self.articles[articlePicked.id]
+				user = self.users[userID]
 
-		#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
-		self.users[userID].updateParameters(self.articles[articlePicked.id], click)
-		user = self.users[userID]
-		#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+				#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+				self.users[userID].updateParameters(self.articles[articlePicked.id], click)
+			
+			for articlePicked, click, userID in self.window:
+				user = self.users[userID]
+				#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
 
-
-		# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
-		self.articles[articlePicked.id].updateParameters(self.users[userID], click)
-		article = self.articles[articlePicked.id]
-		# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
-
+				# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
+				self.articles[articlePicked.id].updateParameters(self.users[userID], click)
+				article = self.articles[articlePicked.id]
+				# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
+			self.window = []
 	def getCoTheta(self, userID):
 		return self.users[userID].U

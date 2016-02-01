@@ -323,8 +323,8 @@ class simulateOnlineData(object):
 
 
 if __name__ == '__main__':
-	training_iterations = 0
-	testing_iterations = 1000
+	training_iterations = 300
+	testing_iterations = 600
 	#iterations = 300
 	NoiseScale = .01
 
@@ -406,7 +406,7 @@ if __name__ == '__main__':
 	#algorithms['syncCoLinUCB'] = syncCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 	#algorithms['AsyncCoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 	algorithms['EgreedySGDLrConstant'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='constant')
-	algorithms['EgreedySGDLrDecay'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension,  feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='decay')
+	# algorithms['EgreedySGDLrDecay'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension,  feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='decay')
 	
 	#algorithms['UniformLinUCB'] = Uniform_LinUCBAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_)
 	#algorithms['WCoLinUCB'] =  WAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_, eta_ = eta_, n = n_users)
@@ -416,11 +416,15 @@ if __name__ == '__main__':
 	#algorithms['eGreedy'] = eGreedyAlgorithm(epsilon = 0.1)
 	#algorithms['UCB1'] = UCB1Algorithm()
 
-	algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB-0.3-0.2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.3, alpha2 = 0.2, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB-0-0.2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0, alpha2 = 0.2, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB-0.3-0'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.3, alpha2 = 0, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	algorithms['CFUCB-0-0'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0, alpha2 = 0, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+
 	algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
-	algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	# algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFEgreedy10'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
-	algorithms['CFUCB2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+	# algorithms['CFUCB2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFEgreedy2'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
 
 	simExperiment.runAlgorithms(algorithms)

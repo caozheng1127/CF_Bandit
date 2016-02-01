@@ -146,7 +146,7 @@ if __name__ == '__main__':
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
-            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
+            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200n , lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
             algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=OriginaluserNum, itemNum=itemNum, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')

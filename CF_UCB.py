@@ -139,8 +139,8 @@ class CFUCBAlgorithm:
 		return means, vars
 
 	def updateParameters(self, articlePicked, click, userID):
+		self.window.append((articlePicked, click, userID))
 		if len(self.window)%self.window_size == 0:
-			self.window.append((articlePicked, click, userID))
 			for articlePicked, click, userID in self.window:
 				article = self.articles[articlePicked.id]
 				user = self.users[userID]

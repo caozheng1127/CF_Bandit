@@ -144,6 +144,12 @@ if __name__ == '__main__':
         elif args.alg == 'CFUCB':
             run_CFUCB = True
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
+        elif args.alg == 'CFEgreedy':
+            run_CFEgreedy = True
+            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
+        elif args.alg == 'SGDEgreedy':
+            run_SGDEgreedy = True
+            algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=OriginaluserNum, itemNum=itemNum, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

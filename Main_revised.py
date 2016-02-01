@@ -17,6 +17,11 @@ from LastFM_util_functions_2 import *#getFeatureVector, initializeW, initializeG
 from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUserSharedStruct
 from LinUCB import LinUCBUserStruct, N_LinUCBAlgorithm
 from GOBLin import GOBLinSharedStruct
+
+from CF_UCB import CFUCBAlgorithm
+from CFEgreedy import CFEgreedyAlgorithm
+from EgreedyContextual import EgreedyContextualStruct
+
 class Article():    
     def __init__(self, aid, FV=None):
         self.id = aid

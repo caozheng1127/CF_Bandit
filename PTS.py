@@ -120,10 +120,12 @@ class PTSAlgorithm:
 			var = 1.0/(self.particles[d].sigma**2)+article.V.dot(article.A2Inv).dot(article.V)
 			weights.append(scipy.stats.norm(mean, var).pdf(click))
 		weights = np.array(weights)/sum(weights) # sum to 1
+
 		# print self.time, weights
 		#Resampling
 		self.particles = [self.particles[i] for i in np.random.choice(self.particle_num, size = self.particle_num, p = weights)]
-
+		for d in range(self.particle_num):
+			self.particles[d].weight = 1.0/self.particle_num
 		for d in range(self.particle_num):
 			self.particles[d].users[userID].updateParameters(self.particles[d].articles[articlePicked.id], click)
 			self.particles[d].articles[articlePicked.id].updateParameters(self.particles[d].users[userID], click)

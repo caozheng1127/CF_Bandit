@@ -46,9 +46,12 @@ class ArticleManager():
 		
 		articles_id = {}
 		mask = self.generateMasks()
+		feature_matrix = np.empty([self.n_articles, self.dimension])
+		for i in range(self.dimension):
+			feature_matrix[:, i] = np.random.normal(0, np.sqrt(1.0*(self.dimension-i)/self.dimension), self.n_articles)
 		if (self.ArticleGroups == 0):
 			for key in range(self.n_articles):
-				featureVector = featureUniform(self.dimension, {})
+				featureVector = feature_matrix[key]
 				l2_norm = np.linalg.norm(featureVector, ord =2)
 				articles.append(Article(key, featureVector/l2_norm ))
 		else:
@@ -56,9 +59,22 @@ class ArticleManager():
 				articles_id[i] = range((self.n_articles*i)/self.ArticleGroups, (self.n_articles*(i+1))/self.ArticleGroups)
 
 				for key in articles_id[i]:
-					featureVector = np.multiply(featureUniform(self.dimension, {}), mask[i])
+					featureVector = np.multiply(feature_matrix[key], mask[i])
 					l2_norm = np.linalg.norm(featureVector, ord =2)
 					articles.append(Article(key, featureVector/l2_norm ))
+		# if (self.ArticleGroups == 0):
+		# 	for key in range(self.n_articles):
+		# 		featureVector = featureUniform(self.dimension, {})
+		# 		l2_norm = np.linalg.norm(featureVector, ord =2)
+		# 		articles.append(Article(key, featureVector/l2_norm ))
+		# else:
+		# 	for i in range(self.ArticleGroups):
+		# 		articles_id[i] = range((self.n_articles*i)/self.ArticleGroups, (self.n_articles*(i+1))/self.ArticleGroups)
+
+		# 		for key in articles_id[i]:
+		# 			featureVector = np.multiply(featureUniform(self.dimension, {}), mask[i])
+		# 			l2_norm = np.linalg.norm(featureVector, ord =2)
+		# 			articles.append(Article(key, featureVector/l2_norm ))
 
 		# Hardcode five article groups
 		'''

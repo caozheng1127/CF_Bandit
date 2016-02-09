@@ -21,6 +21,7 @@ from GOBLin import GOBLinSharedStruct
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
+from PTS import PTSAlgorithm
 
 class Article():    
     def __init__(self, aid, FV=None):
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('--clusterfile', dest="clusterfile", help="input an clustering label file", 
                         metavar="FILE", type=lambda x: is_valid_file(parser, x))
     # Select algorithm.
-    parser.add_argument('--alg', dest='alg', help='Select a specific algorithm, could be CoLinUCB, GOBLin, LinUCB, M_LinUCB, Uniform_LinUCB, or ALL. No alg argument means Random.')
+    parser.add_argument('--alg', dest='alg', help='Select a specific algorithm, could be CoLinUCB, GOBLin, LinUCB, M_LinUCB, Uniform_LinUCB, PTS, or ALL. No alg argument means Random.')
    
     # Designate relation matrix diagnol.
     parser.add_argument('--diagnol', dest='diagnol', required=True, help='Designate relation matrix diagnol, could be 0, 1, or Origin.') 
@@ -82,7 +83,13 @@ if __name__ == '__main__':
 
     # Designate event file, default is processed_events_shuffled.dat
     parser.add_argument('--event', 
-                        help='Designate event file. Default is processed_events_shuffled.dat')    
+                        help='Designate event file. Default is processed_events_shuffled.dat')  
+
+    parser.add_argument('--particle_num', 
+                        help='Particle number for PTS.')
+    parser.add_argument('--dimension', 
+                        help='Feature dimension used for estimation.')
+
     args = parser.parse_args()
     
     batchSize = 1                          # size of one batch
@@ -127,7 +134,7 @@ if __name__ == '__main__':
 
     algorithms = {}
 
-    runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = False
+    runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
     if args.alg:
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
@@ -149,7 +156,22 @@ if __name__ == '__main__':
             algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
-            algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=OriginaluserNum, itemNum=itemNum, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=OriginaluserNum, itemNum=itemNum, k=dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
+        elif args.alg == 'PTS':
+            run_PTS = True
+            if not args.particle_num:
+                particle_num = 10
+            else:
+                particle_num = int(args.particle_num)
+            if not args.dimension:
+                dimension = 10
+            else:
+                dimension = int(args.dimension)
+            algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

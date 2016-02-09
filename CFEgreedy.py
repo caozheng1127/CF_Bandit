@@ -64,7 +64,7 @@ class CFUCBUserStruct:
 		pta = mean
 		return pta
 class CFEgreedyAlgorithm:
-	def __init__(self, context_dimension, latent_dimension, alpha, lambda_, n, itemNum, init="zero", epsilon_init = 0):  # n is number of users
+	def __init__(self, context_dimension, latent_dimension, alpha, lambda_, n, itemNum, init="zero", epsilon_init = 100):  # n is number of users
 		self.context_dimension = context_dimension
 		self.latent_dimension = latent_dimension
 		self.d = context_dimension + latent_dimension

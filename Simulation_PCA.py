@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 # local address to save simulated users, simulated articles, and results
 from conf import sim_files_folder, save_address
-from util_functions import featureUniform
+from util_functions import featureUniform, gaussianFeature
 from Articles import ArticleManager
 from Users import UserManager
 from LinUCB import N_LinUCBAlgorithm, Uniform_LinUCBAlgorithm
@@ -16,6 +16,7 @@ from LinEgreedy import N_LinEgreedyAlgorithm
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
+from PTS import PTSAlgorithm
 
 class simulateOnlineData(object):
 	def __init__(self, context_dimension, latent_dimension, training_iterations, testing_iterations, testing_method, plot, articles, users, 
@@ -328,7 +329,9 @@ def pca_articles(articles, order):
 		X.append(article.featureVector)
 	pca = PCA()
 	X_new = pca.fit_transform(X)
-	print(pca.explained_variance_ratio_) 
+	# X_new = np.asarray(X)
+	print('pca variance in each dim:', pca.explained_variance_ratio_) 
+
 	print X_new
 	#default is descending order, where the latend features use least informative dimensions.
 	if order == 'random':
@@ -393,7 +396,7 @@ if __name__ == '__main__':
 	articles = AM.loadArticles(articlesFilename)
 
 	#PCA
-	pca_articles(articles, 'ascend')
+	pca_articles(articles, 'random')
 
 	
 	for i in range(len(articles)):
@@ -430,7 +433,7 @@ if __name__ == '__main__':
 	#algorithms['GOBLin'] = GOBLinAlgorithm( dimension= dimension, alpha = G_alpha, lambda_ = G_lambda_, n = n_users, W = simExperiment.getGW() )
 	#algorithms['syncCoLinUCB'] = syncCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 	#algorithms['AsyncCoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
-	algorithms['EgreedySGDLrConstant'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='constant')
+	# algorithms['EgreedySGDLrConstant'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension, feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='constant')
 	# algorithms['EgreedySGDLrDecay'] = EgreedyContextualStruct(epsilon_init=200, userNum=n_users, itemNum=n_articles, k=context_dimension+latent_dimension,  feature_dim = context_dimension, lambda_ = lambda_, init='zero', learning_rate='decay')
 	
 	#algorithms['UniformLinUCB'] = Uniform_LinUCBAlgorithm(dimension = dimension, alpha = alpha, lambda_ = lambda_)
@@ -441,11 +444,16 @@ if __name__ == '__main__':
 	#algorithms['eGreedy'] = eGreedyAlgorithm(epsilon = 0.1)
 	#algorithms['UCB1'] = UCB1Algorithm()
 
-	algorithms['CFUCB-ld1'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 1, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
-	algorithms['CFUCB-ld3'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 3, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
-	algorithms['CFUCB-ld5'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
-	algorithms['CFUCB-ld7'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 7, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	# algorithms['CFUCB-ld1'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 1, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	# algorithms['CFUCB-ld3'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 3, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	# algorithms['CFUCB-ld5'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	# algorithms['CFUCB-ld7'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 7, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 
+	algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	algorithms['PTS_p30_d25'] = PTSAlgorithm(particle_num = 30, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	algorithms['PTS_p10_d25'] = PTSAlgorithm(particle_num = 10, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	algorithms['PTS_p30_d10'] = PTSAlgorithm(particle_num = 30, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	algorithms['PTS_p10_d10'] = PTSAlgorithm(particle_num = 10, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
 
 	# algorithms['CFUCB-window-increase'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 	# algorithms['CFUCB-window1'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = 1)

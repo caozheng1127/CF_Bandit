@@ -89,7 +89,7 @@ class CFUCBUserStruct:
 			return 0
 
 class CFUCBAlgorithm:
-	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, init="zero", window_size = 1):  # n is number of users
+	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, init="zero", window_size = 1, max_window_size = 50):  # n is number of users
 
 		self.context_dimension = context_dimension
 		self.latent_dimension = latent_dimension
@@ -106,7 +106,13 @@ class CFUCBAlgorithm:
 		self.alpha = alpha
 		self.alpha2 = alpha2
 
-		self.window_size = window_size
+		if window_size == -1:
+			self.increase_window = True
+			self.window_size = 1
+		else:
+			self.increase_window = False
+			self.window_size = window_size
+		self.max_window_size = max_window_size
 		self.window = []
 
 		self.CanEstimateUserPreference = False
@@ -157,5 +163,7 @@ class CFUCBAlgorithm:
 				article = self.articles[articlePicked.id]
 				# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
 			self.window = []
+			if self.increase_window == True:
+				self.window_size = min(self.window_size+1, self.max_window_size)
 	def getCoTheta(self, userID):
 		return self.users[userID].U

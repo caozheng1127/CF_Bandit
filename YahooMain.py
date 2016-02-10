@@ -147,10 +147,18 @@ if __name__ == '__main__':
             run_Uniform_LinUCB = True
         elif args.alg == 'CFUCB':
             run_CFUCB = True
-            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
-            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
             if not args.dimension:

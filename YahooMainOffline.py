@@ -147,14 +147,22 @@ if __name__ == '__main__':
             run_Uniform_LinUCB = True
         elif args.alg == 'CFUCB':
             run_CFUCB = True
-            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
-            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
             if not args.dimension:
-                dimension = 7
+                dimension = 5
             else:
                 dimension = int(args.dimension)
             algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
@@ -165,17 +173,10 @@ if __name__ == '__main__':
             else:
                 particle_num = int(args.particle_num)
             if not args.dimension:
-                dimension = 7
+                dimension = 5
             else:
                 dimension = int(args.dimension)
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
-        elif args.alg == 'TCF':
-            run_TCF = True
-            if not args.dimension:
-                dimension = 7
-            else:
-                dimension = int(args.dimension)
-            algorithms['TCF'] = EgreedyContextualStruct(epsilon_init=0, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = 0, lambda_ = lambda_, init='random', learning_rate='constant')
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

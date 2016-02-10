@@ -194,8 +194,13 @@ if __name__ == '__main__':
             # reading file line ie observations running one at a time
             for line in f:
                 tim, article_chosen, click, currentUserID, pool_articles = parseLine_ID(line)
+                for article in pool_articles:
+                    article_id = int(article[0])
+                    if article_id == article_chosen:
+                        article_featureVector =np.asarray(article[1:6])
+                        pickedArticle = Article(article_id, article_featureVector)
                 for alg_name, alg in algorithms.items():
-                    alg.updateParameters(article_chosen, click, currentUserID)
+                    alg.updateParameters(pickedArticle, click, currentUserID)
 
     #Test
     tcf_observations = []

@@ -212,11 +212,11 @@ if __name__ == '__main__':
                 # article picked by random strategy
                 articles_random.learn_stats.addrecord(click)
                 for alg_name, alg in algorithms.items():
-                    pickedArticle = alg.decide(articlePool, userID)
+                    pickedArticle = alg.decide(articlePool, currentUserID)
                     # reward = getReward(userID, pickedArticle) 
                     if (pickedArticle.id == article_chosen):
                         alg.learn_stats.addrecord(click)
-                        alg.updateParameters(pickedArticle, click, userID)
+                        alg.updateParameters(pickedArticle, click, currentUserID)
                         calculateStat()
 	                
                 for article in currentArticles:

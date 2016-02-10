@@ -209,6 +209,12 @@ if __name__ == '__main__':
                     articlePool.append(Article(article_id, article_featureVector))
                     currentArticles.append(article_id)  
                 shuffle(articlePool)
+                for article in currentArticles:
+                    if article not in articleTruePositve:
+                        articleTruePositve[article] = 0
+                        articleTrueNegative[article] = 0
+                        articleFalsePositive[article] = 0
+                        articleFalseNegative[article] = 0
                 # article picked by random strategy
                 articles_random.learn_stats.addrecord(click)
                 for alg_name, alg in algorithms.items():
@@ -219,12 +225,7 @@ if __name__ == '__main__':
                         alg.updateParameters(pickedArticle, click, currentUserID)
                         calculateStat()
 	                
-                for article in currentArticles:
-                    if article not in articleTruePositve:
-                        articleTruePositve[article] = 0
-                        articleTrueNegative[article] = 0
-                        articleFalsePositive[article] = 0
-                        articleFalseNegative[article] = 0
+
                 # if the batch has ended
                 if totalObservations%batchSize==0:
                     printWrite()

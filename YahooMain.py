@@ -20,6 +20,8 @@ from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
 
+import warnings
+
 # structure to save data from random strategy as mentioned in LiHongs paper
 class randomStruct:
     def __init__(self):
@@ -31,6 +33,7 @@ class Article():
         self.contextFeatureVector = FV
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
     # regularly print stuff to see if everything is going alright.
     # this function is inside main so that it shares variables with main and I dont wanna have large number of function arguments
     def printWrite():

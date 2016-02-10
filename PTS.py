@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.stats
-import warnings
+
 class PTSArticleStruct:
 	def __init__(self, id, dimension, sigma, sigmaV, init="zero"):
 		self.id = id
@@ -14,9 +14,8 @@ class PTSArticleStruct:
 		self.Mu = 1.0/(self.sigma**2)*self.A2Inv.dot(self.b2)
 
 		self.count = {}
-		with warnings.catch_warnings():
-			warnings.simplefilter("ignore")
-			self.V = np.random.multivariate_normal(self.Mu, self.A2Inv)
+
+		self.V = np.random.multivariate_normal(self.Mu, self.A2Inv)
 	def updateParameters(self, user, click):
 		if user.id in self.count:
 			self.count[user.id] += 1

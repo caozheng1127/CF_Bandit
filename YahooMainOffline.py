@@ -131,7 +131,7 @@ if __name__ == '__main__':
      
     articles_random = randomStruct()
     algorithms = {}
-    runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
+    runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = run_TCF = False
     if args.alg:
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
@@ -171,7 +171,11 @@ if __name__ == '__main__':
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
         elif args.alg == 'TCF':
             run_TCF = True
-             algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = 0, latent_dimension = 7, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random', epsilon_init = 0)
+            if not args.dimension:
+                dimension = 7
+            else:
+                dimension = int(args.dimension)
+            algorithms['TCF'] = EgreedyContextualStruct(epsilon_init=0, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = 0, lambda_ = lambda_, init='random', learning_rate='constant')
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

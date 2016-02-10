@@ -61,7 +61,7 @@ class EgreedyContextualStruct:
         if (self.learning_rate=='decay'):
             self.tau = self.tau_init/math.sqrt(self.time/self.userNum+1)
     def get_epsilon(self):
-        return min(self.epsilon_init/self.time, 1)
+        return min(1.0*self.epsilon_init/self.time, 1)
 
     def SGD(self, reward, item, userID):
         itemID = item.id

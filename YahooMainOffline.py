@@ -154,7 +154,7 @@ if __name__ == '__main__':
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
             if not args.dimension:
-                dimension = 5
+                dimension = 7
             else:
                 dimension = int(args.dimension)
             algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
@@ -165,10 +165,13 @@ if __name__ == '__main__':
             else:
                 particle_num = int(args.particle_num)
             if not args.dimension:
-                dimension = 5
+                dimension = 7
             else:
                 dimension = int(args.dimension)
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+        elif args.alg == 'TCF':
+            run_TCF = True
+             algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = 0, latent_dimension = 7, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random', epsilon_init = 0)
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:
@@ -191,6 +194,7 @@ if __name__ == '__main__':
                     alg.updateParameters(article_chosen, click, currentUserID)
 
     #Test
+    tcf_observations = []
     for dataDay in dataDays[train_days:]:
         fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID'
         fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
@@ -235,7 +239,10 @@ if __name__ == '__main__':
                     # reward = getReward(userID, pickedArticle) 
                     if (pickedArticle.id == article_chosen):
                         alg.learn_stats.addrecord(click)
-                        alg.updateParameters(pickedArticle, click, currentUserID)
+                        if alg_name == "TCF": #Traditional CF
+                            tcf_observations.append((pickedArticle, click, currentUserID))
+                        else:
+                            alg.updateParameters(pickedArticle, click, currentUserID)
                         calculateStat()
 	                
 
@@ -247,3 +254,8 @@ if __name__ == '__main__':
             #print stuff to screen and save parameters to file when the Yahoo! dataset file ends
             printWrite()
             WriteStat()
+        for alg_name, alg in algorithms.items():
+            if alg_name == "TCF":
+                for pickedArticle, click, currentUserID in tcf_observations:
+                    alg.updateParameters(pickedArticle, click, currentUserID)
+        tcf_observations = []

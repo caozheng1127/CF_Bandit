@@ -166,6 +166,20 @@ if __name__ == '__main__':
             else:
                 dimension = int(args.dimension)
             algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
+        elif args.alg == 'TCFLinear':
+            run_CFEgreedy = True
+            if not args.dimension:
+                dimension = 10
+            else:
+                dimension = int(args.dimension)
+            algorithms['TCFLinear'] = CFEgreedyAlgorithm(context_dimension = 0, latent_dimension = dimension, alpha = 200, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random', epsilon_init = 0)
+        elif args.alg == 'TCFSGD':
+            run_SGDEgreedy = True
+            if not args.dimension:
+                dimension = 10
+            else:
+                dimension = int(args.dimension)
+            algorithms['TCFSGD'] = EgreedyContextualStruct(epsilon_init=200, userNum=clusterNum, itemNum=itemNum, k=dimension, feature_dim = 0, lambda_ = lambda_, init='random', learning_rate='constant')
         elif args.alg == 'PTS':
             run_PTS = True
             if not args.particle_num:
@@ -249,7 +263,7 @@ if __name__ == '__main__':
                     # reward = getReward(userID, pickedArticle) 
                     if (pickedArticle.id == article_chosen):
                         alg.learn_stats.addrecord(click)
-                        if alg_name == "TCF": #Traditional CF
+                        if alg_name == "TCFSGD" or alg_name == 'TCFLinear': #Traditional CF
                             tcf_observations.append((pickedArticle, click, currentUserID))
                         else:
                             alg.updateParameters(pickedArticle, click, currentUserID)
@@ -265,7 +279,7 @@ if __name__ == '__main__':
             printWrite()
             WriteStat()
         for alg_name, alg in algorithms.items():
-            if alg_name == "TCF":
+            if alg_name == "TCFSGD" or alg_name == 'TCFLinear': 
                 for pickedArticle, click, currentUserID in tcf_observations:
                     alg.updateParameters(pickedArticle, click, currentUserID)
         tcf_observations = []

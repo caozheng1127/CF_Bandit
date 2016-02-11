@@ -382,7 +382,7 @@ if __name__ == '__main__':
 	
 	#"Run if there is no such file with these settings; if file already exist then comment out the below funciton"
 	# we can choose to simulate users every time we run the program or simulate users once, save it to 'sim_files_folder', and keep using it.
-	UM = UserManager(context_dimension+latent_dimension, n_users, UserGroups = UserGroups, thetaFunc=featureUniform, argv={'l2_limit':1})
+	UM = UserManager(context_dimension+latent_dimension, n_users, UserGroups = UserGroups, thetaFunc=gaussianFeature, argv={'l2_limit':1})
 	# users = UM.simulateThetafromUsers()
 	# UM.saveUsers(users, userFilename, force = False)
 	users = UM.loadUsers(userFilename)

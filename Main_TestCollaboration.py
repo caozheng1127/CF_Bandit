@@ -15,7 +15,7 @@ from LastFM_util_functions_2 import *#getFeatureVector, initializeW, initializeG
 #from LastFM_util_functions import getFeatureVector, initializeW, initializeGW, parseLine, save_to_file
 
 from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUserSharedStruct
-from LinUCB import LinUCBUserStruct, N_LinUCBAlgorithm
+from LinUCB import LinUCBUserStruct, N_LinUCBAlgorithm, Hybrid_LinUCBAlgorithm
 from GOBLin import GOBLinSharedStruct
 
 from CF_UCB import CFUCBAlgorithm
@@ -23,6 +23,7 @@ from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
 
+import warnings
 class Article():    
     def __init__(self, aid, FV=None):
         self.id = aid
@@ -40,6 +41,7 @@ def is_valid_file(parser, arg):
         return open(arg, 'r')  # return an open file handle
 
 if __name__ == '__main__':
+    warnings.filterwarnings('ignore')
     # regularly print stuff to see if everything is going alright.
     # this function is inside main so that it shares variables with main and I dont wanna have large number of function arguments
     def printWrite():
@@ -131,6 +133,8 @@ if __name__ == '__main__':
     # Read Feature Vectors from File
     FeatureVectors = readFeatureVectorFile(FeatureVectorsFileName)
     # Decide which algorithms to run.
+    #Generate user feature vectors
+    userFeatureVectors = generateUserFeature(W)
 
     algorithms = {}
 
@@ -172,6 +176,8 @@ if __name__ == '__main__':
             else:
                 dimension = int(args.dimension)
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+        elif args.alg == 'Hybrid_LinUCB':
+            algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=userFeatureVectors)
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

@@ -231,10 +231,6 @@ if __name__ == '__main__':
 
             shuffle(articlePool)
 
-            RandomPicked = choice(articlePool)
-            if RandomPicked.id == article_chosen:
-                articles_random.reward +=1
-
             for alg_name, alg in algorithms.items():
                 pickedArticle = alg.decide(articlePool, userID)
                 # reward = getReward(userID, pickedArticle) 

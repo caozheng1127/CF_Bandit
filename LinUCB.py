@@ -120,3 +120,91 @@ class LinUCB_SelectUserAlgorithm(N_LinUCBAlgorithm):
 					maxPTA = x_pta
 
 		return userPicked, articlePicked
+
+class Hybrid_LinUCB_singleUserStruct(LinUCBUserStruct):
+	def __init__(self, userFeature, lambda_, userID):
+		LinUCBUserStruct.__init__(self, len(userFeature), userID,  lambda_)
+		self.d = len(userFeature)
+		
+		self.B = np.zeros([self.d, self.d**2])
+		self.userFeature = userFeature
+	def updateParameters(self, articlePicked, click):
+		article_FeatureVector = articlePicked.featureVector
+
+		additionalFeatureVector = vectorize(np.outer(self.userFeature, article_FeatureVector))
+		LinUCBUserStruct.updateParameters(self, articlePicked, click)
+		self.B +=np.outer(article_FeatureVector, additionalFeatureVector)
+	def updateTheta(self, beta):
+		self.UserTheta = np.dot(self.AInv, (self.b- np.dot(self.B, beta)))
+
+
+
+class Hybrid_LinUCBUserStruct:
+	def __init__(self, featureDimension,  lambda_, userFeatureList):
+		self.k = featureDimension**2
+		self.A_z = lambda_*np.identity(n = self.k)
+		self.b_z = np.zeros(self.k)
+		self.A_zInv = np.linalg.inv(self.A_z)
+		self.beta = np.dot(self.A_zInv, self.b_z)
+		self.users = []
+
+		for i in range(len(userFeatureList)):
+			self.users.append(Hybrid_LinUCB_singleUserStruct(userFeatureList[i], lambda_ , i))
+
+	def updateParameters(self, articlePicked, click, userID):
+		articlePicked_FeatureVector = articlePicked.featureVector
+		z = vectorize( np.outer(self.users[userID].userFeature, articlePicked_FeatureVector))
+
+		temp = np.dot(np.transpose(self.users[userID].B), self.users[userID].AInv)
+
+		self.A_z += np.dot(temp, self.users[userID].B)
+		self.b_z +=np.dot(temp, self.users[userID].b)
+
+		self.users[userID].updateParameters(articlePicked, click)
+
+		temp = np.dot(np.transpose(self.users[userID].B), self.users[userID].AInv)
+
+		self.A_z = self.A_z + np.outer(z,z) - np.dot(temp, self.users[userID].B)
+		self.b_z =self.b_z+ click*z - np.dot(temp, self.users[userID].b)
+		self.A_zInv = np.linalg.inv(self.A_z)
+
+		self.beta =np.dot(self.A_zInv, self.b_z)
+		self.users[userID].updateTheta(self.beta)
+
+	def getProb(self, alpha, article_FeatureVector,userID):
+		x = article_FeatureVector
+		z = vectorize(np.outer(self.users[userID].userFeature, article_FeatureVector))
+		temp =np.dot(np.dot(np.dot( self.A_zInv , np.transpose( self.users[userID].B)) , self.users[userID].AInv), x )
+		mean = np.dot(self.users[userID].UserTheta,  x)+ np.dot(self.beta, z)
+		s_t = np.dot(np.dot(z, self.A_zInv),  z) + np.dot(np.dot(x, self.users[userID].AInv),  x)
+		-2* np.dot(z, temp)+ np.dot(np.dot( np.dot(x, self.users[userID].AInv) ,  self.users[userID].B ) ,temp)
+
+		var = np.sqrt(s_t)
+		pta = mean + alpha * var
+		return pta
+
+
+class Hybrid_LinUCBAlgorithm(object):
+	def __init__(self, dimension, alpha, lambda_, userFeatureList):
+		self.dimension = dimension
+		self.alpha = alpha
+		self.USER = Hybrid_LinUCBUserStruct(dimension, lambda_, userFeatureList)
+
+		self.CanEstimateUserPreference = False
+		self.CanEstimateCoUserPreference = False
+		self.CanEstimateW = False
+	def decide(self, pool_articles, userID):
+		maxPTA = float('-inf')
+		articlePicked = None
+
+		for x in pool_articles:
+			x_pta = self.USER.getProb(self.alpha, x.featureVector, userID)
+			if maxPTA < x_pta:
+				articlePicked = x
+				maxPTA = x_pta
+		return articlePicked
+	def updateParameters(self, articlePicked, click, userID):
+		self.USER.updateParameters(articlePicked, click, userID)
+	def getLearntParameters(self, userID):
+		return self.USER.users[userID].UserTheta
+

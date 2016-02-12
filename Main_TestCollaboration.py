@@ -243,7 +243,7 @@ if __name__ == '__main__':
             for alg_name, alg in algorithms.items():
                 if alg_name in ['HybridLinUCB']:
                     currentuserID = label[userID]
-                    print currentuserID
+                    # print currentuserID
                 else:
                     currentuserID = userID
                 pickedArticle = alg.decide(articlePool, currentuserID)

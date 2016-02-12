@@ -1,4 +1,5 @@
 import numpy as np
+from YahooExp_util_functions import vectorize
 class LinUCBUserStruct:
 	def __init__(self, featureDimension, lambda_, init="zero"):
 		self.d = featureDimension
@@ -41,6 +42,7 @@ class Uniform_LinUCBAlgorithm(object):
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True 
 		self.CanEstimateW = False
+		self.CanEstimateV = False
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
 		articlePicked = None
@@ -72,6 +74,7 @@ class N_LinUCBAlgorithm:
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True
 		self.CanEstimateW = False
+		self.CanEstimateV = False
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
 		articlePicked = None
@@ -123,17 +126,15 @@ class LinUCB_SelectUserAlgorithm(N_LinUCBAlgorithm):
 
 class Hybrid_LinUCB_singleUserStruct(LinUCBUserStruct):
 	def __init__(self, userFeature, lambda_, userID):
-		LinUCBUserStruct.__init__(self, len(userFeature), userID,  lambda_)
+		LinUCBUserStruct.__init__(self, len(userFeature), lambda_)
 		self.d = len(userFeature)
 		
 		self.B = np.zeros([self.d, self.d**2])
 		self.userFeature = userFeature
-	def updateParameters(self, articlePicked, click):
-		article_FeatureVector = articlePicked.featureVector
-
-		additionalFeatureVector = vectorize(np.outer(self.userFeature, article_FeatureVector))
-		LinUCBUserStruct.updateParameters(self, articlePicked, click)
-		self.B +=np.outer(article_FeatureVector, additionalFeatureVector)
+	def updateParameters(self, articlePicked_FeatureVector, click):
+		additionalFeatureVector = vectorize(np.outer(self.userFeature, articlePicked_FeatureVector))
+		LinUCBUserStruct.updateParameters(self, articlePicked_FeatureVector, click)
+		self.B +=np.outer(articlePicked_FeatureVector, additionalFeatureVector)
 	def updateTheta(self, beta):
 		self.UserTheta = np.dot(self.AInv, (self.b- np.dot(self.B, beta)))
 
@@ -141,6 +142,7 @@ class Hybrid_LinUCB_singleUserStruct(LinUCBUserStruct):
 
 class Hybrid_LinUCBUserStruct:
 	def __init__(self, featureDimension,  lambda_, userFeatureList):
+
 		self.k = featureDimension**2
 		self.A_z = lambda_*np.identity(n = self.k)
 		self.b_z = np.zeros(self.k)
@@ -149,10 +151,10 @@ class Hybrid_LinUCBUserStruct:
 		self.users = []
 
 		for i in range(len(userFeatureList)):
+
 			self.users.append(Hybrid_LinUCB_singleUserStruct(userFeatureList[i], lambda_ , i))
 
-	def updateParameters(self, articlePicked, click, userID):
-		articlePicked_FeatureVector = articlePicked.featureVector
+	def updateParameters(self, articlePicked_FeatureVector, click, userID):
 		z = vectorize( np.outer(self.users[userID].userFeature, articlePicked_FeatureVector))
 
 		temp = np.dot(np.transpose(self.users[userID].B), self.users[userID].AInv)
@@ -160,7 +162,7 @@ class Hybrid_LinUCBUserStruct:
 		self.A_z += np.dot(temp, self.users[userID].B)
 		self.b_z +=np.dot(temp, self.users[userID].b)
 
-		self.users[userID].updateParameters(articlePicked, click)
+		self.users[userID].updateParameters(articlePicked_FeatureVector, click)
 
 		temp = np.dot(np.transpose(self.users[userID].B), self.users[userID].AInv)
 
@@ -191,20 +193,21 @@ class Hybrid_LinUCBAlgorithm(object):
 		self.USER = Hybrid_LinUCBUserStruct(dimension, lambda_, userFeatureList)
 
 		self.CanEstimateUserPreference = False
-		self.CanEstimateCoUserPreference = False
+		self.CanEstimateCoUserPreference = False 
 		self.CanEstimateW = False
+		self.CanEstimateV = False
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
 		articlePicked = None
 
 		for x in pool_articles:
-			x_pta = self.USER.getProb(self.alpha, x.featureVector, userID)
+			x_pta = self.USER.getProb(self.alpha, x.contextFeatureVector[:self.dimension], userID)
 			if maxPTA < x_pta:
 				articlePicked = x
 				maxPTA = x_pta
 		return articlePicked
 	def updateParameters(self, articlePicked, click, userID):
-		self.USER.updateParameters(articlePicked, click, userID)
-	def getLearntParameters(self, userID):
+		self.USER.updateParameters(articlePicked.contextFeatureVector, click, userID)
+	def getCoTheta(self, userID):
 		return self.USER.users[userID].UserTheta
 

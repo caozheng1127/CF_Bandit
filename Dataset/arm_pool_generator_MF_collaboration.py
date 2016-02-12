@@ -67,12 +67,12 @@ for t in user_arm_tag:
 		#print random_pool_1
 		fout_Part0.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_0)+'\n')	
 		fout_Part1.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_0)+'\n')	
-	elif t['uid'] in user_pool_train or t['aid'] in arm_pool_train:
+	elif t['uid'] in user_pool_test or t['aid'] in arm_pool_train:
 		#print t['aid']
 		random_pool_1 = [t['aid']]+random.sample(user_arm_pool[t['uid']]-arm_pool_test, 24)
 		#print random_pool_1
 		fout_Part1.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_1)+'\n')		
-	if t['uid'] in user_pool_test and t['aid'] in arm_pool_test:
+	if t['uid'] in user_pool_train and t['aid'] in arm_pool_test:
 		random_pool_2 = [t['aid']]+random.sample(user_arm_pool[t['uid']]-arm_pool_train, 24)
 		fout_Part2.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_2)+'\n')
 fout_Part0.close()

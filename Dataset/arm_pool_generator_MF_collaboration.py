@@ -55,19 +55,26 @@ for t in user_arm_tag:
 random.shuffle(user_arm_tag)
 
 #generate random arm_pool and write to file
-fout_Part1 = open(sys.argv[1].split('/')[0]+'/processed_events_shuffled_MFCollab_part1.dat','w')
+fout_Part0 = open(sys.argv[1].split('/')[0]+'/processed_events_shuffled_MFCollab_part0.dat','w') # upper left
+fout_Part0.write('userid	timestamp	arm_pool\n')
+fout_Part1 = open(sys.argv[1].split('/')[0]+'/processed_events_shuffled_MFCollab_part1.dat','w') # three part
 fout_Part1.write('userid	timestamp	arm_pool\n')
-fout_Part2 = open(sys.argv[1].split('/')[0]+'/processed_events_shuffled_MFCollab_part2.dat','w')
+fout_Part2 = open(sys.argv[1].split('/')[0]+'/processed_events_shuffled_MFCollab_part2.dat','w') # upper right
 fout_Part2.write('userid	timestamp	arm_pool\n')
 for t in user_arm_tag:	
-	if t['uid'] in user_pool_train or t['aid'] in arm_pool_train:
+	if t['uid'] in user_pool_train and t['aid'] in arm_pool_train:
+		random_pool_0 = [t['aid']]+random.sample(user_arm_pool[t['uid']]-arm_pool_test, 24)
+		#print random_pool_1
+		fout_Part0.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_0)+'\n')	
+		fout_Part1.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_0)+'\n')	
+	elif t['uid'] in user_pool_train or t['aid'] in arm_pool_train:
 		#print t['aid']
 		random_pool_1 = [t['aid']]+random.sample(user_arm_pool[t['uid']]-arm_pool_test, 24)
 		#print random_pool_1
 		fout_Part1.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_1)+'\n')		
-	else:
+	if t['uid'] in user_pool_test and t['aid'] in arm_pool_test:
 		random_pool_2 = [t['aid']]+random.sample(user_arm_pool[t['uid']]-arm_pool_train, 24)
 		fout_Part2.write(str(t['uid'])+'\t'+str(t['tstamp'])+'\t'+str(random_pool_2)+'\n')
-	
+fout_Part0.close()
 fout_Part1.close()
 fout_Part2.close()

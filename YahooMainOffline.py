@@ -83,6 +83,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--Sparsity', dest = 'SparsityLevel', help ='Set the SparsityLevel by choosing the top M most connected users, should be smaller than userNum, when equal to userNum, we are using a full connected graph')
     parser.add_argument('--diag', dest="DiagType", help="Specify the setting of diagional setting, can be set as 'Orgin' or 'Opt' ") 
+    parser.add_argument('--pretrain', dest="pretrian", help="Pretrain or not") 
 
     parser.add_argument('--particle_num', 
                         help='Particle number for PTS.')
@@ -202,20 +203,21 @@ if __name__ == '__main__':
 
     train_days = 2
     #Train
-    for dataDay in dataDays[:train_days]:
-        fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID'
-        fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
-        with open(fileName, 'r') as f:
-            # reading file line ie observations running one at a time
-            for line in f:
-                tim, article_chosen, click, currentUserID, pool_articles = parseLine_ID(line)
-                for article in pool_articles:
-                    article_id = int(article[0])
-                    if article_id == article_chosen:
-                        article_featureVector =np.asarray(article[1:6])
-                        pickedArticle = Article(article_id, article_featureVector)
-                for alg_name, alg in algorithms.items():
-                    alg.updateParameters(pickedArticle, click, currentUserID)
+    if (not args.pretrain or args.pretrain == True):
+        for dataDay in dataDays[:train_days]:
+            fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID'
+            fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
+            with open(fileName, 'r') as f:
+                # reading file line ie observations running one at a time
+                for line in f:
+                    tim, article_chosen, click, currentUserID, pool_articles = parseLine_ID(line)
+                    for article in pool_articles:
+                        article_id = int(article[0])
+                        if article_id == article_chosen:
+                            article_featureVector =np.asarray(article[1:6])
+                            pickedArticle = Article(article_id, article_featureVector)
+                    for alg_name, alg in algorithms.items():
+                        alg.updateParameters(pickedArticle, click, currentUserID)
 
     #Test
     tcf_observations = []

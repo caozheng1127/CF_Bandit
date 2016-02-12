@@ -86,7 +86,8 @@ if __name__ == '__main__':
     # Designate event file, default is processed_events_shuffled.dat
     parser.add_argument('--event', 
                         help='Designate event file. Default is processed_events_shuffled.dat')  
-
+    parser.add_argument('--train', 
+                        help='Select training data. 0 means only same user. 1 means using all (apart from test) observations.')
     parser.add_argument('--particle_num', 
                         help='Particle number for PTS.')
     parser.add_argument('--dimension', 
@@ -130,6 +131,7 @@ if __name__ == '__main__':
         normalizedNewW, newW, label = initializeW_clustering(OriginaluserNum, relationFileName, nClusters)
         GW = initializeGW_clustering(Gepsilon, relationFileName, newW)
         W = normalizedNewW
+    print W
     # Read Feature Vectors from File
     FeatureVectors = readFeatureVectorFile(FeatureVectorsFileName)
     # Decide which algorithms to run.
@@ -186,10 +188,10 @@ if __name__ == '__main__':
     
 
 
-    FirstPartFileName = address + '/processed_events_shuffled_MFCollab_part1.dat'
+    FirstPartFileName = address + '/processed_events_shuffled_MFCollab_part'+args.train+'.dat'
     SecondPartFileName = address + '/processed_events_shuffled_MFCollab_part2.dat'
     
-    fileSig = 'TestCoMF_'+args.dataset+'_shuffled_Clustering_'+args.alg+'_'
+    fileSig = 'TestCoMF_'+args.dataset+'_shuffled_Clustering_'+args.alg+'_train'+args.train+'_'
 
     articles_random = randomStruct()
     fileNameWrite = os.path.join(save_address, fileSig + timeRun + '.csv')

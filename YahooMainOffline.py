@@ -14,7 +14,7 @@ from YahooExp_util_functions import *
 
 from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUserSharedStruct
 from GOBLin import GOBLinSharedStruct
-from LinUCB import N_LinUCBAlgorithm#LinUCBUserStruct, Hybrid_LinUCBUserStruct
+from LinUCB import N_LinUCBAlgorithm, Hybrid_LinUCBAlgorithm#LinUCBUserStruct, Hybrid_LinUCBUserStruct
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
@@ -199,6 +199,9 @@ if __name__ == '__main__':
             else:
                 dimension = int(args.dimension)
             algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
+        elif args.alg == 'Hybrid_LinUCB':
+            algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=userFeatureVectors)
+
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

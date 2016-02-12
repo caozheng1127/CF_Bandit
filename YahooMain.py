@@ -19,7 +19,7 @@ from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
-
+from UCBPMF import UCBPMFAlgorithm
 import warnings
 
 # structure to save data from random strategy as mentioned in LiHongs paper
@@ -177,6 +177,14 @@ if __name__ == '__main__':
             else:
                 dimension = int(args.dimension)
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+        elif args.alg == 'UCBPMF':
+            run_UCBPMF = True
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = dimension, n = clusterNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1)
+
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:

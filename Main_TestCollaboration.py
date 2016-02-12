@@ -137,6 +137,7 @@ if __name__ == '__main__':
     # Decide which algorithms to run.
     #Generate user feature vectors
     userFeatureVectors = generateUserFeature(W)
+    # print userFeatureVectors
 
     algorithms = {}
 
@@ -240,13 +241,18 @@ if __name__ == '__main__':
             shuffle(articlePool)
 
             for alg_name, alg in algorithms.items():
-                pickedArticle = alg.decide(articlePool, userID)
+                if alg_name in ['HybridLinUCB']:
+                    currentuserID = label[userID]
+                    print currentuserID
+                else:
+                    currentuserID = userID
+                pickedArticle = alg.decide(articlePool, currentuserID)
                 # reward = getReward(userID, pickedArticle) 
                 if (pickedArticle.id == article_chosen):
                     reward = 1
                 else:
                     reward = 0
-                alg.updateParameters(pickedArticle, reward, userID)
+                alg.updateParameters(pickedArticle, reward, currentuserID)
 
 
     for alg_name, alg in algorithms.items():
@@ -279,13 +285,18 @@ if __name__ == '__main__':
                 articles_random.reward +=1
 
             for alg_name, alg in algorithms.items():
-                pickedArticle = alg.decide(articlePool, userID)
+                if alg_name in ['HybridLinUCB']:
+                    currentuserID = label[userID]
+                    # print currentuserID
+                else:
+                    currentuserID = userID
+                pickedArticle = alg.decide(articlePool, currentuserID)
                 # reward = getReward(userID, pickedArticle) 
                 if (pickedArticle.id == article_chosen):
                     reward = 1
                 else:
                     reward = 0
-                alg.updateParameters(pickedArticle, reward, userID)
+                alg.updateParameters(pickedArticle, reward, currentuserID)
 
                 alg.reward += reward
                 AlgReward[alg_name].append(reward)

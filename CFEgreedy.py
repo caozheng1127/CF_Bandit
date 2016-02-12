@@ -84,6 +84,7 @@ class CFEgreedyAlgorithm:
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True 
 		self.CanEstimateW = False
+		self.CanEstimateV = True
 		self.time = 1
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
@@ -122,5 +123,6 @@ class CFEgreedyAlgorithm:
 
 	def getCoTheta(self, userID):
 		return self.users[userID].U
-
+	def getV(self, articleID):
+		return self.articles[articleID].V
 

@@ -131,7 +131,7 @@ class simulateOnlineData(object):
 			Theta.T[i] = self.users[i].theta
 		return Theta
 	def generateUserFeature(self,W):
-		svd = TruncatedSVD(n_components=5)
+		svd = TruncatedSVD(n_components=20)
 		result = svd.fit(W).transform(W)
 		return result
 
@@ -180,10 +180,12 @@ class simulateOnlineData(object):
 		ThetaDiffList = {}
 		CoThetaDiffList = {}
 		WDiffList = {}
+		VDiffList = {}
 		
 		ThetaDiff = {}
 		CoThetaDiff = {}
 		WDiff = {}
+		VDiff = {}
 		
 		# Initialization
 		userSize = len(self.users)
@@ -196,19 +198,22 @@ class simulateOnlineData(object):
 				CoThetaDiffList[alg_name] = []
 			if alg.CanEstimateW:
 				WDiffList[alg_name] = []
+			if alg.CanEstimateV:
+				VDiffList[alg_name] = []
 		
 		with open(filenameWriteRegret, 'w') as f:
 			f.write('Time(Iteration)')
 			f.write(',' + ','.join( [str(alg_name) for alg_name in algorithms.iterkeys()]))
 			f.write('\n')
-		'''
+		
 		with open(filenameWritePara, 'w') as f:
 			f.write('Time(Iteration)')
-			f.write(',' + ','.join([str(alg_name)+'CoTheta' for alg_name in algorithms.iterkeys()]))
+			f.write(',' + ','.join([str(alg_name)+'CoTheta' for alg_name in CoThetaDiffList.iterkeys()]))
 			f.write(','+ ','.join([str(alg_name)+'Theta' for alg_name in ThetaDiffList.iterkeys()]))
 			f.write(','+ ','.join([str(alg_name)+'W' for alg_name in WDiffList.iterkeys()]))
+			f.write(','+ ','.join([str(alg_name)+'V' for alg_name in VDiffList.iterkeys()]))
 			f.write('\n')
-		'''
+		
 		
 
 		# Training
@@ -249,7 +254,8 @@ class simulateOnlineData(object):
 					CoThetaDiff[alg_name] = 0
 				if alg.CanEstimateW:
 					WDiff[alg_name] = 0
-					
+				if alg.CanEstimateV:
+					VDiff[alg_name]	= 0		
 			for u in self.users:
 				self.regulateArticlePool() # select random articles
 
@@ -271,10 +277,11 @@ class simulateOnlineData(object):
 					if alg.CanEstimateUserPreference:
 						ThetaDiff[alg_name] += self.getL2Diff(u.theta, alg.getTheta(u.id))
 					if alg.CanEstimateCoUserPreference:
-						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta[:context_dimension], alg.getCoTheta(u.id)[:context_dimension])
+						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta[:len(alg.getCoTheta(u.id))], alg.getCoTheta(u.id))
 					if alg.CanEstimateW:
 						WDiff[alg_name] += self.getL2Diff(self.W.T[u.id], alg.getW(u.id))	
-			
+					if alg.CanEstimateV:
+						VDiff[alg_name]	+= self.getL2Diff(self.articles[pickedArticle.id].featureVector, alg.getV(pickedArticle.id))
 			if 'syncCoLinUCB' in algorithms:
 				algorithms['syncCoLinUCB'].LateUpdate()	
 			
@@ -285,22 +292,26 @@ class simulateOnlineData(object):
 					CoThetaDiffList[alg_name] += [CoThetaDiff[alg_name]/userSize]
 				if alg.CanEstimateW:
 					WDiffList[alg_name] += [WDiff[alg_name]/userSize]	
-				
+				if alg.CanEstimateV:
+					VDiffList[alg_name] += [VDiff[alg_name]/userSize]					
 			if iter_%self.batchSize == 0:
 				self.batchRecord(iter_)
 				tim_.append(iter_)
 				for alg_name in algorithms.iterkeys():
 					BatchCumlateRegret[alg_name].append(sum(AlgRegret[alg_name]))
+
 				with open(filenameWriteRegret, 'a+') as f:
 					f.write(str(iter_))
 					f.write(',' + ','.join([str(BatchCumlateRegret[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
 					f.write('\n')
-				# with open(filenameWritePara, 'a+') as f:
-				# 	f.write(str(iter_))
-				# 	f.write(',' + ','.join([str(CoThetaDiffList[alg_name][-1]) for alg_name in algorithms.iterkeys()]))
-				# 	f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
-				# 	f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
-				# 	f.write('\n')
+				with open(filenameWritePara, 'a+') as f:
+					f.write(str(iter_))
+					f.write(',' + ','.join([str(CoThetaDiffList[alg_name][-1]) for alg_name in CoThetaDiffList.iterkeys()]))
+					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
+					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in VDiffList.iterkeys()]))
+					f.write('\n')
+
 		if (self.plot==True): # only plot
 			# plot the results	
 			f, axa = plt.subplots(1, sharex=True)
@@ -321,7 +332,8 @@ class simulateOnlineData(object):
 					axa.plot(time, ThetaDiffList[alg_name], label = alg_name + '_Theta')
 				if alg.CanEstimateCoUserPreference:
 					axa.plot(time, CoThetaDiffList[alg_name], label = alg_name + '_CoTheta')
-				
+				if alg.CanEstimateV:
+					axa.plot(time, VDiffList[alg_name], label = alg_name + '_V')				
 			axa.legend(loc='upper right',prop={'size':6})
 			axa.set_xlabel("Iteration")
 			axa.set_ylabel("L2 Diff")
@@ -430,7 +442,7 @@ if __name__ == '__main__':
 						training_iterations = training_iterations,
 						testing_iterations = testing_iterations,
 						testing_method = "online", # batch or online
-						plot = False,
+						plot = True,
 						articles=articles,
 						users = users,		
 						noise = lambda : np.random.normal(scale = NoiseScale),
@@ -497,4 +509,12 @@ if __name__ == '__main__':
 	# algorithms['CFEgreedy2'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
 	if algName == 'HybridLinUCB':
 		algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=simExperiment.generateUserFeature(simExperiment.getW()))
+	if algName == 'All':
+		algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
+		algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+		algorithms['PTS'] = PTSAlgorithm(particle_num = 10, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+		algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
+		algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=simExperiment.generateUserFeature(simExperiment.getW()))
+
+
 	simExperiment.runAlgorithms(algorithms)

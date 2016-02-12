@@ -118,6 +118,7 @@ class CFUCBAlgorithm:
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True 
 		self.CanEstimateW = False
+		self.CanEstimateV = True
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
 		articlePicked = None
@@ -167,3 +168,5 @@ class CFUCBAlgorithm:
 				self.window_size = min(self.window_size+1, self.max_window_size)
 	def getCoTheta(self, userID):
 		return self.users[userID].U
+	def getV(self, articleID):
+		return self.articles[articleID].V

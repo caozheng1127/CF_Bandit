@@ -1,4 +1,5 @@
 import numpy as np
+
 class CFUCBArticleStruct:
 	def __init__(self, id, context_dimension, latent_dimension, lambda_, init="zero", context_feature=None):
 		self.id = id
@@ -11,13 +12,14 @@ class CFUCBArticleStruct:
 		self.A2Inv = np.linalg.inv(self.A2)
 
 		self.count = {}
-
+		self.time = 0
 		if (init=="random"):
 			self.V = np.random.rand(self.d)
 		else:
 			self.V = np.zeros(self.d)
 
 	def updateParameters(self, user, click):
+		self.time += 1
 		if user.id in self.count:
 			self.count[user.id] += 1
 		else:
@@ -46,13 +48,14 @@ class CFUCBUserStruct:
 		self.AInv = np.linalg.inv(self.A)
 
 		self.count = {}
-
+		self.time = 0
 		if (init=="random"):
 			self.U = np.random.rand(self.d)
 		else:
 			self.U = np.zeros(self.d)
-		self.U = np.zeros(self.d)
+		# self.U = np.zeros(self.d)
 	def updateParameters(self, article, click):
+		self.time += 1
 		if article.id in self.count:
 			self.count[article.id] += 1
 		else:
@@ -70,6 +73,9 @@ class CFUCBUserStruct:
 		return self.A
 
 	def getProb(self, alpha, alpha2, article):
+		if alpha == -1:
+			alpha = 0.1*np.sqrt(np.log(self.time+1))+0.1*(1-0.8**self.time)
+			alpha2 = 0.1*np.sqrt(np.log(article.time+1))+0.1*(1-0.8**article.time)
 		mean = np.dot(self.U, article.V)
 		var = np.sqrt(np.dot(np.dot(article.V, self.AInv),  article.V))
 		var2 = np.sqrt(np.dot(np.dot(self.U[self.context_dimension:], article.A2Inv),  self.U[self.context_dimension:]))
@@ -114,7 +120,7 @@ class CFUCBAlgorithm:
 			self.window_size = window_size
 		self.max_window_size = max_window_size
 		self.window = []
-
+		self.time = 0
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = True 
 		self.CanEstimateW = False
@@ -146,6 +152,7 @@ class CFUCBAlgorithm:
 		return means, vars
 
 	def updateParameters(self, articlePicked, click, userID):
+		self.time += 1
 		self.window.append((articlePicked, click, userID))
 		if len(self.window)%self.window_size == 0:
 			for articlePicked, click, userID in self.window:

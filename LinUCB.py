@@ -10,13 +10,14 @@ class LinUCBUserStruct:
 			self.UserTheta = np.random.rand(self.d)
 		else:
 			self.UserTheta = np.zeros(self.d)
+		self.time = 0
 
 	def updateParameters(self, articlePicked_FeatureVector, click):
 		self.A += np.outer(articlePicked_FeatureVector,articlePicked_FeatureVector)
 		self.b += articlePicked_FeatureVector*click
 		self.AInv = np.linalg.inv(self.A)
 		self.UserTheta = np.dot(self.AInv, self.b)
-		
+		self.time += 1
 	def getTheta(self):
 		return self.UserTheta
 	
@@ -24,6 +25,8 @@ class LinUCBUserStruct:
 		return self.A
 
 	def getProb(self, alpha, article_FeatureVector):
+		if alpha == -1:
+			alpha = alpha = 0.1*np.sqrt(np.log(self.time+1))
 		mean = np.dot(self.UserTheta,  article_FeatureVector)
 		var = np.sqrt(np.dot(np.dot(article_FeatureVector, self.AInv),  article_FeatureVector))
 		pta = mean + alpha * var

@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--Sparsity', dest = 'SparsityLevel', help ='Set the SparsityLevel by choosing the top M most connected users, should be smaller than userNum, when equal to userNum, we are using a full connected graph')
     parser.add_argument('--diag', dest="DiagType", help="Specify the setting of diagional setting, can be set as 'Orgin' or 'Opt' ") 
-    parser.add_argument('--pretrain', dest="pretrian", help="Pretrain or not") 
+    parser.add_argument('--pretrain', dest="pretrain", help="Pretrain or not") 
 
     parser.add_argument('--particle_num', 
                         help='Particle number for PTS.')

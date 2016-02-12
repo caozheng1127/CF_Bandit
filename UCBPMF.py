@@ -88,6 +88,7 @@ class UCBPMFAlgorithm:
 		self.CanEstimateUserPreference = False
 		self.CanEstimateCoUserPreference = False
 		self.CanEstimateW = False
+		self.CanEstimateV = False
 	def decide(self, pool_articles, userID):
 
 		maxPTA = float('-inf')

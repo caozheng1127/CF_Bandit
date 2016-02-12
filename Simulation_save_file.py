@@ -17,7 +17,7 @@ from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
-from UCBPMC import UCBPMFAlgorithm
+from UCBPMF import UCBPMFAlgorithm
 import argparse
 from sklearn.decomposition import TruncatedSVD
 from sklearn import cluster

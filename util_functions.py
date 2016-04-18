@@ -55,16 +55,18 @@ def fileOverWriteWarning(filename, force):
 
 
 def vectorize(M):
-	temp = []
-	for i in range(M.shape[0]*M.shape[1]):
-		temp.append(M.T.item(i))
-	V = np.asarray(temp)
-	return V
+	# temp = []
+	# for i in range(M.shape[0]*M.shape[1]):
+	# 	temp.append(M.T.item(i))
+	# V = np.asarray(temp)
+	# return V
+	return np.reshape(M, M.shape[0]*M.shape[1])
 
 def matrixize(V, C_dimension):
-	temp = np.zeros(shape = (C_dimension, len(V)/C_dimension))
-	for i in range(len(V)/C_dimension):
-		temp.T[i] = V[i*C_dimension : (i+1)*C_dimension]
-	W = temp
-	return W
+	# temp = np.zeros(shape = (C_dimension, len(V)/C_dimension))
+	# for i in range(len(V)/C_dimension):
+	# 	temp.T[i] = V[i*C_dimension : (i+1)*C_dimension]
+	# W = temp
+	# return W
 	#To-do: use numpy built-in function reshape.
+	return np.reshape(V, (C_dimension, int(len(V)/C_dimension)))

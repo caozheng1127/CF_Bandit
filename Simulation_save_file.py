@@ -432,7 +432,7 @@ if __name__ == '__main__':
 	UserGroups = 0
 	
 	poolSize = 10
-	batchSize = 100
+	batchSize = 1
 
 	# Matrix parameters
 	matrixNoise = 0.01

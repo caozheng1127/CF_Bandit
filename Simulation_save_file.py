@@ -21,7 +21,8 @@ from UCBPMF import UCBPMFAlgorithm
 import argparse
 from sklearn.decomposition import TruncatedSVD
 from sklearn import cluster
-
+from factorLinUCB import FactorLinUCBAlgorithm
+from CoLin import AsyCoLinUCBAlgorithm
 
 class simulateOnlineData(object):
 	def __init__(self, context_dimension, latent_dimension, training_iterations, testing_iterations, testing_method, plot, articles, users, 
@@ -182,11 +183,17 @@ class simulateOnlineData(object):
 		CoThetaDiffList = {}
 		WDiffList = {}
 		VDiffList = {}
-		
+		CoThetaVDiffList = {}
+		RDiffList ={}
+		RVDiffList = {}
+
 		ThetaDiff = {}
 		CoThetaDiff = {}
 		WDiff = {}
 		VDiff = {}
+		CoThetaVDiff = {}
+		RDiff ={}
+		RVDiff = {}
 		
 		# Initialization
 		userSize = len(self.users)
@@ -201,6 +208,10 @@ class simulateOnlineData(object):
 				WDiffList[alg_name] = []
 			if alg.CanEstimateV:
 				VDiffList[alg_name] = []
+				CoThetaVDiffList[alg_name] = []
+				RVDiffList[alg_name] = []
+			RDiffList[alg_name] = []
+
 		
 		with open(filenameWriteRegret, 'w') as f:
 			f.write('Time(Iteration)')
@@ -213,6 +224,9 @@ class simulateOnlineData(object):
 			f.write(','+ ','.join([str(alg_name)+'Theta' for alg_name in ThetaDiffList.iterkeys()]))
 			f.write(','+ ','.join([str(alg_name)+'W' for alg_name in WDiffList.iterkeys()]))
 			f.write(','+ ','.join([str(alg_name)+'V' for alg_name in VDiffList.iterkeys()]))
+			f.write(',' + ','.join([str(alg_name)+'CoThetaV' for alg_name in CoThetaVDiffList.iterkeys()]))
+			f.write(','+ ','.join([str(alg_name)+'R' for alg_name in RDiffList.iterkeys()]))
+			f.write(','+ ','.join([str(alg_name)+'RV' for alg_name in RVDiffList.iterkeys()]))
 			f.write('\n')
 		
 		
@@ -256,7 +270,11 @@ class simulateOnlineData(object):
 				if alg.CanEstimateW:
 					WDiff[alg_name] = 0
 				if alg.CanEstimateV:
-					VDiff[alg_name]	= 0		
+					VDiff[alg_name]	= 0	
+					CoThetaVDiff[alg_name] = 0	
+					RVDiff[alg_name]	= 0	
+				RDiff[alg_name]	= 0	
+				
 			for u in self.users:
 				self.regulateArticlePool() # select random articles
 
@@ -278,11 +296,14 @@ class simulateOnlineData(object):
 					if alg.CanEstimateUserPreference:
 						ThetaDiff[alg_name] += self.getL2Diff(u.theta, alg.getTheta(u.id))
 					if alg.CanEstimateCoUserPreference:
-						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta[:len(alg.getCoTheta(u.id))], alg.getCoTheta(u.id))
+						CoThetaDiff[alg_name] += self.getL2Diff(u.CoTheta[:self.context_dimension], alg.getCoTheta(u.id)[:self.context_dimension])
 					if alg.CanEstimateW:
 						WDiff[alg_name] += self.getL2Diff(self.W.T[u.id], alg.getW(u.id))	
 					if alg.CanEstimateV:
 						VDiff[alg_name]	+= self.getL2Diff(self.articles[pickedArticle.id].featureVector, alg.getV(pickedArticle.id))
+						CoThetaVDiff[alg_name]	+= self.getL2Diff(u.CoTheta[self.context_dimension:], alg.getCoTheta(u.id)[self.context_dimension:])
+						RVDiff[alg_name] += abs(u.CoTheta[self.context_dimension:].dot(self.articles[pickedArticle.id].featureVector[self.context_dimension:]) - alg.getCoTheta(u.id)[self.context_dimension:].dot(alg.getV(pickedArticle.id)[self.context_dimension:]))
+						RDiff[alg_name] += reward-noise -  alg.getCoTheta(u.id).dot(alg.getV(pickedArticle.id))
 			if 'syncCoLinUCB' in algorithms:
 				algorithms['syncCoLinUCB'].LateUpdate()	
 			
@@ -294,7 +315,10 @@ class simulateOnlineData(object):
 				if alg.CanEstimateW:
 					WDiffList[alg_name] += [WDiff[alg_name]/userSize]	
 				if alg.CanEstimateV:
-					VDiffList[alg_name] += [VDiff[alg_name]/userSize]					
+					VDiffList[alg_name] += [VDiff[alg_name]/userSize]	
+					CoThetaVDiffList[alg_name] += [CoThetaVDiff[alg_name]/userSize]
+					RVDiffList[alg_name] += [RVDiff[alg_name]/userSize]
+					RDiffList[alg_name] += [RDiff[alg_name]/userSize]				
 			if iter_%self.batchSize == 0:
 				self.batchRecord(iter_)
 				tim_.append(iter_)
@@ -311,6 +335,9 @@ class simulateOnlineData(object):
 					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
 					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
 					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in VDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in CoThetaVDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in RVDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in RDiffList.iterkeys()]))
 					f.write('\n')
 
 		if (self.plot==True): # only plot
@@ -334,7 +361,10 @@ class simulateOnlineData(object):
 				if alg.CanEstimateCoUserPreference:
 					axa.plot(time, CoThetaDiffList[alg_name], label = alg_name + '_CoTheta')
 				if alg.CanEstimateV:
-					axa.plot(time, VDiffList[alg_name], label = alg_name + '_V')				
+					axa.plot(time, VDiffList[alg_name], label = alg_name + '_V')			
+					axa.plot(time, CoThetaVDiffList[alg_name], label = alg_name + '_CoThetaV')	
+					axa.plot(time, RVDiffList[alg_name], label = alg_name + '_RV')	
+					axa.plot(time, RDiffList[alg_name], label = alg_name + '_R')		
 			axa.legend(loc='upper right',prop={'size':6})
 			axa.set_xlabel("Iteration")
 			axa.set_ylabel("L2 Diff")
@@ -402,7 +432,7 @@ if __name__ == '__main__':
 	UserGroups = 0
 	
 	poolSize = 10
-	batchSize = 1
+	batchSize = 100
 
 	# Matrix parameters
 	matrixNoise = 0.01
@@ -486,7 +516,7 @@ if __name__ == '__main__':
 	# algorithms['CFUCB-ld5'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 	# algorithms['CFUCB-ld7'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 7, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 	if algName == 'CFUCB':
-		algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+		algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='zero', window_size = -1)	
 	if algName == 'PTS':
 	# algorithms['PTS_p30_d25'] = PTSAlgorithm(particle_num = 30, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
 	# algorithms['PTS_p10_d25'] = PTSAlgorithm(particle_num = 10, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
@@ -512,6 +542,11 @@ if __name__ == '__main__':
 		algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=simExperiment.generateUserFeature(simExperiment.getW()))
 	if args.alg == 'UCBPMF':
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
+	if args.alg == 'factorLinUCB':
+		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = -1)	
+	if args.alg == 'CoLin':
+		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+
 	if algName == 'All':
 		algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
 		algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
@@ -519,5 +554,7 @@ if __name__ == '__main__':
 		algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
 		algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=simExperiment.generateUserFeature(simExperiment.getW()))
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
+		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = -1)	
 
 	simExperiment.runAlgorithms(algorithms)

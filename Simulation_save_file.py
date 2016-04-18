@@ -543,7 +543,7 @@ if __name__ == '__main__':
 	if args.alg == 'UCBPMF':
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
 	if args.alg == 'factorLinUCB':
-		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = -1)	
+		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = 1)	
 	if args.alg == 'CoLin':
 		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 

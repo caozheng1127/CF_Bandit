@@ -333,11 +333,11 @@ class simulateOnlineData(object):
 					f.write(str(iter_))
 					f.write(',' + ','.join([str(CoThetaDiffList[alg_name][-1]) for alg_name in CoThetaDiffList.iterkeys()]))
 					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in ThetaDiffList.iterkeys()]))
-					f.write(','+ ','.join([str(ThetaDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
+					f.write(','+ ','.join([str(WDiffList[alg_name][-1]) for alg_name in WDiffList.iterkeys()]))
 					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in VDiffList.iterkeys()]))
-					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in CoThetaVDiffList.iterkeys()]))
-					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in RVDiffList.iterkeys()]))
-					f.write(',' + ','.join([str(VDiffList[alg_name][-1]) for alg_name in RDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(CoThetaVDiffList[alg_name][-1]) for alg_name in CoThetaVDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(RVDiffList[alg_name][-1]) for alg_name in RVDiffList.iterkeys()]))
+					f.write(',' + ','.join([str(RDiffList[alg_name][-1]) for alg_name in RDiffList.iterkeys()]))
 					f.write('\n')
 
 		if (self.plot==True): # only plot

@@ -210,7 +210,7 @@ class simulateOnlineData(object):
 				VDiffList[alg_name] = []
 				CoThetaVDiffList[alg_name] = []
 				RVDiffList[alg_name] = []
-			RDiffList[alg_name] = []
+				RDiffList[alg_name] = []
 
 		
 		with open(filenameWriteRegret, 'w') as f:

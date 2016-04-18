@@ -17,7 +17,9 @@ from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
-
+from UCBPMF import UCBPMFAlgorithm 
+from factorLinUCB import FactorLinUCBAlgorithm
+from CoLin import AsyCoLinUCBAlgorithm
 class simulateOnlineData(object):
 	def __init__(self, context_dimension, latent_dimension, training_iterations, testing_iterations, testing_method, plot, articles, users, 
 					batchSize = 1000,
@@ -347,7 +349,7 @@ def pca_articles(articles, order):
 
 if __name__ == '__main__':
 	training_iterations = 0
-	testing_iterations = 500
+	testing_iterations = 300
 	#iterations = 300
 	NoiseScale = .01
 
@@ -449,12 +451,11 @@ if __name__ == '__main__':
 	# algorithms['CFUCB-ld5'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 	# algorithms['CFUCB-ld7'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 7, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 
-	algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
-	algorithms['PTS_p30_d25'] = PTSAlgorithm(particle_num = 30, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
-	algorithms['PTS_p10_d25'] = PTSAlgorithm(particle_num = 10, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
-	algorithms['PTS_p30_d10'] = PTSAlgorithm(particle_num = 30, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
-	algorithms['PTS_p10_d10'] = PTSAlgorithm(particle_num = 10, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
-
+	# algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
+	# algorithms['PTS_p30_d25'] = PTSAlgorithm(particle_num = 30, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	# algorithms['PTS_p10_d25'] = PTSAlgorithm(particle_num = 10, dimension = 25, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	# algorithms['PTS_p30_d10'] = PTSAlgorithm(particle_num = 30, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+	
 	# algorithms['CFUCB-window-increase'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = -1)	
 	# algorithms['CFUCB-window1'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = 1)
 	# algorithms['CFUCB-window10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', window_size = 10)
@@ -465,10 +466,22 @@ if __name__ == '__main__':
 	# algorithms['CFUCB-0.2-0'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFUCB-0-0'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0, alpha2 = 0, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 
-	algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
-	# algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+		# algorithms['CFUCB10'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFEgreedy10'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 10, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
 	# algorithms['CFUCB2'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, alpha2 = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
 	# algorithms['CFEgreedy2'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = 2, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random', epsilon_init=200)
+
+	# algorithms['UCBPMF0'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0)
+	
+	# algorithms['PTS_p10_d10'] = PTSAlgorithm(particle_num = 10, dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
+
+	# algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='random')
+
+	# algorithms['UCBPMF0.1'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1)
+	algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, init='zero', window_size = -1)	
+
+	algorithms['AsyncCoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
+
+	algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = -1)	
 
 	simExperiment.runAlgorithms(algorithms)

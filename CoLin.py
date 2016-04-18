@@ -25,11 +25,11 @@ class CoLinUCBUserSharedStruct(object):
 	
 	def getProb(self, alpha, article, userID):
 		
-		TempFeatureM = np.zeros(shape =(len(article.featureVector), self.userNum))
-		TempFeatureM.T[userID] = article.featureVector
+		TempFeatureM = np.zeros(shape =(len(article.contextFeatureVector), self.userNum))
+		TempFeatureM.T[userID] = article.contextFeatureVector
 		TempFeatureV = vectorize(TempFeatureM)
 		
-		mean = np.dot(self.CoTheta.T[userID], article.featureVector)	
+		mean = np.dot(self.CoTheta.T[userID], article.contextFeatureVector)	
 		var = np.sqrt(np.dot(np.dot(TempFeatureV, self.CCA), TempFeatureV))
 		
 		pta = mean + alpha * var
@@ -38,12 +38,12 @@ class CoLinUCBUserSharedStruct(object):
 
 class AsyCoLinUCBUserSharedStruct(CoLinUCBUserSharedStruct):	
 	def updateParameters(self, articlePicked, click,  userID):	
-		X = vectorize(np.outer(articlePicked.featureVector, self.W.T[userID])) 
+		X = vectorize(np.outer(articlePicked.contextFeatureVector, self.W.T[userID])) 
 		self.A += np.outer(X, X)	
 		self.b += click*X
 		self.AInv =  np.linalg.inv(self.A)
 
-		self.UserTheta = matrixize(np.dot(self.AInv, self.b), len(articlePicked.featureVector)) 
+		self.UserTheta = matrixize(np.dot(self.AInv, self.b), len(articlePicked.contextFeatureVector)) 
 		self.CoTheta = np.dot(self.UserTheta, self.W)
 		self.CCA = np.dot(np.dot(self.BigW , self.AInv), np.transpose(self.BigW))
 		
@@ -51,19 +51,19 @@ class AsyCoLinUCBUserSharedStruct(CoLinUCBUserSharedStruct):
 class SyCoLinUCBUserSharedStruct(CoLinUCBUserSharedStruct):
 	def __init__(self, featureDimension, lambda_, userNum, W):
 		CoLinUCBUserSharedStruct.__init__(self, featureDimension, lambda_, userNum, W)
-		self.featureVectorMatrix = np.zeros(shape =(featureDimension, userNum))
+		self.contextFeatureVectorMatrix = np.zeros(shape =(featureDimension, userNum))
 		self.reward = np.zeros(userNum)
 	def updateParameters(self, articlePicked, click, userID):	
-		self.featureVectorMatrix.T[userID] = articlePicked.featureVector
+		self.contextFeatureVectorMatrix.T[userID] = articlePicked.contextFeatureVector
 		self.reward[userID] = click
-		featureDimension = len(self.featureVectorMatrix.T[userID])
+		featureDimension = len(self.contextFeatureVectorMatrix.T[userID])
 		
 	def LateUpdate(self):
-		featureDimension = self.featureVectorMatrix.shape[0]
+		featureDimension = self.contextFeatureVectorMatrix.shape[0]
 		current_A = np.zeros(shape = (featureDimension* self.userNum, featureDimension*self.userNum))
 		current_b = np.zeros(featureDimension*self.userNum)		
 		for i in range(self.userNum):
-			X = vectorize(np.outer(self.featureVectorMatrix.T[i], self.W.T[i])) 
+			X = vectorize(np.outer(self.contextFeatureVectorMatrix.T[i], self.W.T[i])) 
 			XS = np.outer(X, X)	
 			current_A += XS
 			current_b += self.reward[i] * X
@@ -85,6 +85,10 @@ class CoLinUCBAlgorithm:
 		self.alpha = alpha
 		self.W = W
 
+		self.CanEstimateUserPreference = False
+		self.CanEstimateCoUserPreference = False 
+		self.CanEstimateW = False
+		self.CanEstimateV = False
 	def decide(self, pool_articles, userID):
 		maxPTA = float('-inf')
 		articlePicked = None
@@ -103,7 +107,7 @@ class CoLinUCBAlgorithm:
 	def getLearntParameters(self, userID):
 		return self.USERS.UserTheta.T[userID]
 
-	def getCoThetaFromCoLinUCB(self, userID):
+	def getCoTheta(self, userID):
 		return self.USERS.CoTheta.T[userID]
 
 	def getA(self):

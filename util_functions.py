@@ -67,3 +67,4 @@ def matrixize(V, C_dimension):
 		temp.T[i] = V[i*C_dimension : (i+1)*C_dimension]
 	W = temp
 	return W
+	#To-do: use numpy built-in function reshape.

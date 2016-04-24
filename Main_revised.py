@@ -18,11 +18,13 @@ from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUse
 from LinUCB import LinUCBUserStruct, N_LinUCBAlgorithm
 from GOBLin import GOBLinSharedStruct
 
+from factorLinUCB import FactorLinUCBAlgorithm
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
 from UCBPMF import UCBPMFAlgorithm
+
 class Article():    
     def __init__(self, aid, FV=None):
         self.id = aid
@@ -151,6 +153,8 @@ if __name__ == '__main__':
         elif args.alg == 'CFUCB':
             run_CFUCB = True
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
+        elif args.alg == 'factorLinUCB':
+            algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, W = W, init='random', window_size = 1)  
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
             algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')

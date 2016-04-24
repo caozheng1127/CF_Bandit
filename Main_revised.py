@@ -289,13 +289,17 @@ if __name__ == '__main__':
                 articles_random.reward +=1
 
             for alg_name, alg in algorithms.items():
-                pickedArticle = alg.decide(articlePool, userID)
+                if alg_name in ['CoLin', 'factorLinUCB']:
+                    currentUserID = label[userID]
+                else:
+                    currentUserID = userID
+                pickedArticle = alg.decide(articlePool, currentUserID)
                 # reward = getReward(userID, pickedArticle) 
                 if (pickedArticle.id == article_chosen):
                     reward = 1
                 else:
                     reward = 0
-                alg.updateParameters(pickedArticle, reward, userID)
+                alg.updateParameters(pickedArticle, reward, currentUserID)
 
                 alg.reward += reward
                 AlgReward[alg_name].append(reward)

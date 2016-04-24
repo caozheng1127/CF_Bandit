@@ -126,7 +126,7 @@ class FactorLinUCBAlgorithm:
 		self.USERS = FactorLinUCBUserStruct(context_dimension, latent_dimension, lambda_ , n, W, init)
 		self.articles = []
 		for i in range(itemNum):
-			print (i)
+			# print (i)
 			self.articles.append(FactorLinUCBArticleStruct(i, context_dimension, latent_dimension, lambda_, W, init)) 
 
 		self.alpha = alpha

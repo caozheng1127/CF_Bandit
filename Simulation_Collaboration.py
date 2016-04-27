@@ -96,8 +96,8 @@ class simulateOnlineData(object):
 
 		return [W, W0]
 
-	def constructLaplacianMatrix(self, G, Gepsilon):
-		print G
+	def constructLaplacianMatrix(self, W, Gepsilon):
+		G = W.copy()
 		#Convert adjacency matrix of weighted graph to adjacency matrix of unweighted graph
 		for i in self.users:
 			for j in self.users:

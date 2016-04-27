@@ -52,7 +52,7 @@ class simulateOnlineData(object):
 		#self.W = self.initializeW(epsilon)
 		#self.GW = self.initializeGW(Gepsilon)
 		self.W, self.W0 = self.constructAdjMatrix(sparseLevel)
-		W = self.W.copy()
+		#W = self.W.copy()
 		self.GW = self.constructLaplacianMatrix(W, Gepsilon)
 		
 	def constructGraph(self):
@@ -94,8 +94,8 @@ class simulateOnlineData(object):
 
 		return [W, W0]
 
-	def constructLaplacianMatrix(self, G, Gepsilon):
-		print G
+	def constructLaplacianMatrix(self, W, Gepsilon):
+		G = W.copy()
 		#Convert adjacency matrix of weighted graph to adjacency matrix of unweighted graph
 		for i in self.users:
 			for j in self.users:

@@ -60,7 +60,7 @@ class simulateOnlineData(object):
 		#self.W = self.initializeW(epsilon)
 		#self.GW = self.initializeGW(Gepsilon)
 		self.W, self.W0 = self.constructAdjMatrix(sparseLevel)
-		#W = self.W.copy()
+		W = self.W.copy()
 		self.GW = self.constructLaplacianMatrix(W, Gepsilon)
 		
 	def constructGraph(self):
@@ -428,7 +428,7 @@ if __name__ == '__main__':
 	n_articles = 1000
 	ArticleGroups = 0
 
-	n_users = 100
+	n_users = 10
 	UserGroups = 0
 	
 	poolSize = 10
@@ -460,7 +460,8 @@ if __name__ == '__main__':
 	# articles = AM.simulateArticlePool()
 	# AM.saveArticles(articles, articlesFilename, force=False)
 	articles = AM.loadArticles(articlesFilename)
-
+	context_dimension = 25
+	latent_dimension = 0
 	#PCA
 	pca_articles(articles, 'random')
 
@@ -543,8 +544,9 @@ if __name__ == '__main__':
 	if args.alg == 'UCBPMF':
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
 	if args.alg == 'factorLinUCB':
-		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = 1)	
+		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='random', window_size = 1)	
 	if args.alg == 'CoLin':
+		algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
 		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 
 	if algName == 'All':

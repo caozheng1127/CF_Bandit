@@ -212,6 +212,8 @@ def initializeW_label(n,relationFileName, label, diagnol, show_heatmap):
             W[i][i] =0
             if sum(W[i]!=0):
                 W[i][i] = np.linalg.norm(W[i])**2/sum(W[i])
+            else:
+                W[i][i] =1            
         print W
         if show_heatmap:
             heatmap(W)

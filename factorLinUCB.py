@@ -65,19 +65,20 @@ class FactorLinUCBUserStruct:
 
 		self.BigW = np.kron(np.transpose(W), np.identity(n=self.d))
 		# self.U = np.zeros(self.d)
-	def updateParameters(self, article, click, userID):
-		self.time += 1
-		if article.id in self.count[userID]:
-			self.count[userID][article.id] += 1
-		else:
-			self.count[userID][article.id] = 1
+	def updateParameters(self, articles, clicks, userID):
+		self.time += len(articles)
+		for article, click in zip(articles, clicks):
+			if article.id in self.count[userID]:
+				self.count[userID][article.id] += 1
+			else:
+				self.count[userID][article.id] = 1
+			X = vectorize(np.outer(article.V, self.W.T[userID])) 
+			self.A += np.outer(X, X)	
+			self.b += click*X
 
-		X = vectorize(np.outer(article.V, self.W.T[userID])) 
-		self.A += np.outer(X, X)	
-		self.b += click*X
 		self.AInv =  np.linalg.inv(self.A)
 
-		self.UserTheta = matrixize(np.dot(self.AInv, self.b), len(article.V)) 
+		self.UserTheta = matrixize(np.dot(self.AInv, self.b), len(articles[0].V)) 
 		self.CoTheta = np.dot(self.UserTheta, self.W)
 		self.CCA = np.dot(np.dot(self.BigW , self.AInv), np.transpose(self.BigW))				
 	
@@ -116,7 +117,7 @@ class FactorLinUCBUserStruct:
 			return 0
 
 class FactorLinUCBAlgorithm:
-	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, W, init="zero", window_size = 1, max_window_size = 50):  # n is number of users
+	def __init__(self, context_dimension, latent_dimension, alpha, alpha2, lambda_, n, itemNum, W, init="zero", window_size = 1, max_window_size = 10):  # n is number of users
 
 		self.context_dimension = context_dimension
 		self.latent_dimension = latent_dimension
@@ -175,22 +176,32 @@ class FactorLinUCBAlgorithm:
 		self.time += 1
 		self.window.append((articlePicked, click, userID))
 		if len(self.window)%self.window_size == 0:
+			articles = []
+			clicks = []
 			for articlePicked, click, userID in self.window:
-				article = self.articles[articlePicked.id]
-
-				#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
-				self.USERS.updateParameters(self.articles[articlePicked.id], click, userID)
-			
+				articles.append(self.articles[articlePicked.id])
+				clicks.append(click)
+			self.USERS.updateParameters(articles, clicks, userID)
 			for articlePicked, click, userID in self.window:
-				#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
-
-				# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
 				self.articles[articlePicked.id].updateParameters(self.USERS, click, userID)
-				article = self.articles[articlePicked.id]
-				# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
+			# for articlePicked, click, userID in self.window:
+			# 	article = self.articles[articlePicked.id]
+
+			# 	#self.articles[articlePicked.id].A2 -= (article.getCount(userID))*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+			# 	self.USERS.updateParameters(self.articles[articlePicked.id], click, userID)
+			
+			# for articlePicked, click, userID in self.window:
+			# 	#self.articles[articlePicked.id].A2 += (article.getCount(userID)-1)*np.outer(user.U[self.context_dimension:], user.U[self.context_dimension:])
+
+			# 	# self.users[userID].A -= (user.getCount(articlePicked.id))*np.outer(article.V, article.V)
+			# 	self.articles[articlePicked.id].updateParameters(self.USERS, click, userID)
+			# 	article = self.articles[articlePicked.id]
+			# 	# self.users[userID].A += (user.getCount(articlePicked.id)-1)*np.outer(article.V, article.V)
 			self.window = []
 			if self.increase_window == True:
 				self.window_size = min(self.window_size+1, self.max_window_size)
+	def increaseWindowSize(self):
+		self.window_size = min(self.window_size+1, self.max_window_size)
 	def getCoTheta(self, userID):
 		return self.USERS.CoTheta.T[userID]
 	def getTheta(self, userID):

@@ -15,6 +15,7 @@ from YahooExp_util_functions import *
 from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUserSharedStruct
 from GOBLin import GOBLinSharedStruct
 from LinUCB import N_LinUCBAlgorithm#LinUCBUserStruct, Hybrid_LinUCBUserStruct
+from factorLinUCB import FactorLinUCBAlgorithm
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
@@ -152,6 +153,14 @@ if __name__ == '__main__':
             else:
                 dimension = int(args.dimension)
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+        elif args.alg == 'factorLinUCB':
+            run_factorLinUCB = True
+            if not args.dimension:
+                dimension = 5
+            else:
+                dimension = int(args.dimension)
+            algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.1, alpha2 = 0.05, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, W = W, init='random', window_size = 1)    
+
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
             if not args.dimension:

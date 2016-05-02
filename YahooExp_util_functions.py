@@ -177,6 +177,8 @@ def initializeW_opt(userFeatureVectors, sparsityLevel):
         SparseW[i][i] =0
         if sum(SparseW[i])!=0:
             SparseW[i][i] = np.linalg.norm(SparseW[i])**2/sum(SparseW[i])
+        else:
+            SparseW[i][i] = 1
         SparseW[i] /=sum(SparseW[i])
     print 'SparseW --Opt', SparseW
     #print SparseW[1][19]

@@ -1,5 +1,5 @@
 import pickle # Save model 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import re 			# regular expression library
 from random import random, choice 	# for random strategy
 from operator import itemgetter

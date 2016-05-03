@@ -250,3 +250,6 @@ if __name__ == '__main__':
             #print stuff to screen and save parameters to file when the Yahoo! dataset file ends
             printWrite()
             WriteStat()
+        for alg_name, alg in algorithms.items():
+            model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_'+args.diagnol+'_' + timeRun                    
+            model_dump(alg, model_name, i) 

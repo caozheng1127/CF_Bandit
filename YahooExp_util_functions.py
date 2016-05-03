@@ -4,6 +4,7 @@ from operator import itemgetter
 import numpy as np
 from scipy.sparse import csgraph
 from scipy.spatial import distance
+import pickle
 #import matplotlib.pyplot as plt
 
 def vectorize(M):

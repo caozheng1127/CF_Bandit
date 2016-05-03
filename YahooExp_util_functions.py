@@ -192,6 +192,10 @@ def showheatmap(W):
     plt.colorbar()
     plt.show()
 
+def model_dump(obj, filename):
+    fout = open(filename +'.model', 'w')
+    pickle.dump(obj, fout)
+    fout.close()
 # data structure to store ctr   
 class articleAccess():
     def __init__(self):

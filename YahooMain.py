@@ -89,6 +89,9 @@ if __name__ == '__main__':
                         help='Particle number for PTS.')
     parser.add_argument('--dimension', 
                         help='Feature dimension used for estimation.')
+    # Load previous running status.
+    parser.add_argument('--load', 
+                        help='Load previous running status.')
 
     args = parser.parse_args()
 
@@ -133,7 +136,9 @@ if __name__ == '__main__':
     articles_random = randomStruct()
     algorithms = {}
     runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
-    if args.alg:
+    if args.load:
+
+    elif args.alg:
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
             algorithms['CoLin'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W)
@@ -216,7 +221,7 @@ if __name__ == '__main__':
             f.write('\nNewRunat  ' + datetime.datetime.now().strftime('%m/%d/%Y %H:%M:%S'))
             f.write('\n,Time,RandomCTR;'+ str(algName) + 'CTR;' + 'accesses;'+ 'clicks;' + '' +'\n')
 
-        print fileName, fileNameWrite
+        print (fileName, fileNameWrite)
         with open(fileName, 'r') as f:
             # reading file line ie observations running one at a time
             for line in f:
@@ -260,5 +265,5 @@ if __name__ == '__main__':
             printWrite()
             WriteStat()
         for alg_name, alg in algorithms.items():
-            model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_'+args.diagnol+'_' + timeRun                    
-            model_dump(alg, model_name, i) 
+            model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_' + timeRun                    
+            model_dump(alg, model_name) 

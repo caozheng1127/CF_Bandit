@@ -34,6 +34,6 @@ Delicious_FeatureVectorsFileName = os.path.join(Delicious_address, 'Arm_FeatureV
 Delicious_relationFileName = os.path.join(Delicious_address, 'user_contacts.dat.mapped')
 
 Yelp_save_address = "./YelpResults"
-Yelp_address = '~/Yelp'
+Yelp_address = '../../../Yelp'
 Yelp_FeatureVectorsFileName = os.path.join(Yelp_address, 'Arm_FeatureVectors_2.dat')
 Yelp_relationFileName = os.path.join(Yelp_address, 'user_friends.dat.mapped')

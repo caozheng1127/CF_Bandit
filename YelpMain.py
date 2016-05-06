@@ -277,7 +277,7 @@ if __name__ == '__main__':
             totalObservations +=1            
             OptimalReward = 1
             articlePool = []
-            userID, tim, pool_articles = parseYelpLine(line)
+            userID, pool_articles = parseYelpLine(line)
             # article_chosen = int(pool_articles[0]) 
             for article_id, reward in pool_articles:
                 articlePool.append(Article(article_id, FeatureVectors[article_id], reward))

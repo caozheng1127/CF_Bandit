@@ -26,10 +26,11 @@ from PTS import PTSAlgorithm
 from UCBPMF import UCBPMFAlgorithm
 
 class Article():    
-    def __init__(self, aid, FV=None):
+    def __init__(self, aid, FV=None, reward=0):
         self.id = aid
         self.featureVector = FV
         self.contextFeatureVector = FV
+        self.reward = reward
 # structure to save data from random strategy as mentioned in LiHongs paper
 class randomStruct:
     def __init__(self):
@@ -40,7 +41,15 @@ def is_valid_file(parser, arg):
         parser.error("The file %s does not exist!" % arg)
     else:
         return open(arg, 'r')  # return an open file handle
-
+def parseYelpLine(line):
+    userID, l = line.strip().split(':')
+    userID = int(userID)
+    pairs = l.strip(',').split(',')
+    pool_articles = []
+    for s in pairs:
+        article_id, reward = s.split('_____')
+        pool_articles.append((int(article_id),int(reward)))
+    return userID, pool_articles
 if __name__ == '__main__':
     # regularly print stuff to see if everything is going alright.
     # this function is inside main so that it shares variables with main and I dont wanna have large number of function arguments
@@ -106,6 +115,7 @@ if __name__ == '__main__':
     nClusters = 100
     userNum = nClusters   
 
+    dataset='Yelp'
     relationFileName = Yelp_relationFileName
     address = Yelp_address
     save_address = Yelp_save_address
@@ -187,7 +197,7 @@ if __name__ == '__main__':
     else:
         fileName = address + "/processed_events_shuffled.dat"
     
-    fileSig = args.dataset+'_'+args.clusterfile.name.split('/')[-1]+'_shuffled_Clustering_'+args.alg+'_Diagnol_'+args.diagnol+'_'+fileName.split('/')[3]+'_'
+    fileSig = dataset+'_'+args.clusterfile.name.split('/')[-1]+'_shuffled_Clustering_'+args.alg+'_Diagnol_'+args.diagnol+'_'+fileName.split('/')[3]+'_'
 
     articles_random = randomStruct()
     # if args.load:
@@ -268,16 +278,14 @@ if __name__ == '__main__':
             OptimalReward = 1
             articlePool = []
             userID, tim, pool_articles = parseYelpLine(line)
-            article_chosen = int(pool_articles[0]) 
-            for article in pool_articles:
-                article_id = int(article.strip(']'))
-                articlePool.append(Article(article_id, FeatureVectors[article_id]))
+            # article_chosen = int(pool_articles[0]) 
+            for article_id, reward in pool_articles:
+                articlePool.append(Article(article_id, FeatureVectors[article_id], reward))
 
             shuffle(articlePool)
 
             RandomPicked = choice(articlePool)
-            if RandomPicked.id == article_chosen:
-                articles_random.reward +=1
+            articles_random.reward +=RandomPicked.reward
 
             for alg_name, alg in algorithms.items():
                 if alg_name in ['CoLin', 'factorLinUCB']:
@@ -286,10 +294,7 @@ if __name__ == '__main__':
                     currentUserID = userID
                 pickedArticle = alg.decide(articlePool, currentUserID)
                 # reward = getReward(userID, pickedArticle) 
-                if (pickedArticle.id == article_chosen):
-                    reward = 1
-                else:
-                    reward = 0
+                reward = pickedArticle.reward
                 alg.updateParameters(pickedArticle, reward, currentUserID)
 
                 alg.reward += reward

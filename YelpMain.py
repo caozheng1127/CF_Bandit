@@ -61,7 +61,7 @@ if __name__ == '__main__':
             recordedStats.append(alg.reward)
         #print s         
         # write to file
-        save_to_file(fileNameWrite, recordedStats, tim) 
+        save_to_file(fileNameWrite, recordedStats, '') 
 
 
     timeRun = datetime.datetime.now().strftime('_%m_%d_%H_%M_%S')  # the current data time

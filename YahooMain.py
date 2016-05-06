@@ -159,7 +159,7 @@ if __name__ == '__main__':
                 dimension = 5
             else:
                 dimension = int(args.dimension)
-            algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.1, alpha2 = 0.05, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, W = W, init='random', window_size = 1)    
+            algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, W = W, init='random', window_size = 3)    
 
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
@@ -259,3 +259,6 @@ if __name__ == '__main__':
             #print stuff to screen and save parameters to file when the Yahoo! dataset file ends
             printWrite()
             WriteStat()
+        for alg_name, alg in algorithms.items():
+            model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_'+args.diagnol+'_' + timeRun                    
+            model_dump(alg, model_name, i) 

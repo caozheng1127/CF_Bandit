@@ -4,6 +4,7 @@ from operator import itemgetter
 import numpy as np
 from scipy.sparse import csgraph
 from scipy.spatial import distance
+import pickle
 #import matplotlib.pyplot as plt
 
 def vectorize(M):
@@ -192,6 +193,10 @@ def showheatmap(W):
     plt.colorbar()
     plt.show()
 
+def model_dump(obj, filename):
+    fout = open(filename +'.model', 'w')
+    pickle.dump(obj, fout)
+    fout.close()
 # data structure to store ctr   
 class articleAccess():
     def __init__(self):

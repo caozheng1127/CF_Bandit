@@ -253,7 +253,7 @@ if __name__ == '__main__':
         f.write('\n')
     print (fileName, fileNameWrite)
 
-    tsave = 60*60*23 # Time interval for saving model.
+    tsave = 60*60*46 # Time interval for saving model.
     tstart = time.time()
     save_flag = 0
 
@@ -309,6 +309,12 @@ if __name__ == '__main__':
                 AlgPicked[alg_name].append(pickedArticle.id)
                 regret = OptimalReward - reward 
                 AlgRegret[alg_name].append(regret) 
+
+                if save_flag:
+                    model_name = args.dataset+'_'+str(nClusters)+'_shuffled_Clustering_'+alg_name+'_Diagnol_'+args.diagnol+'_' + timeRun
+                    model_dump(alg, model_name, i)
+
+            save_flag = 0
             # if the batch has ended
             if totalObservations%batchSize==0:
                 printWrite()
@@ -316,6 +322,7 @@ if __name__ == '__main__':
                 if tend-tstart>tsave:
                     save_flag = 1
                     tstart = tend
+
     #print stuff to screen and save parameters to file when the Yahoo! dataset file ends
     printWrite()
     

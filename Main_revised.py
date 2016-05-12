@@ -141,6 +141,9 @@ if __name__ == '__main__':
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
             algorithms['CoLin'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W)
+        elif args.alg == 'CoLinUCBRankOne':
+            runCoLinUCB = True
+            algorithms['CoLinRankOne'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W, update='RankOne')
         elif args.alg == 'GOBLin':
             runGOBLin = True
         elif args.alg == 'LinUCB':
@@ -289,7 +292,7 @@ if __name__ == '__main__':
                 articles_random.reward +=1
 
             for alg_name, alg in algorithms.items():
-                if alg_name in ['CoLin', 'factorLinUCB']:
+                if alg_name in ['CoLin', 'CoLinRankOne','factorLinUCB']:
                     currentUserID = label[userID]
                 else:
                     currentUserID = userID

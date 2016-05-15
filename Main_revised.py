@@ -183,7 +183,7 @@ if __name__ == '__main__':
             if args.load:
                 algorithms['factorLinUCB'] = obj
             else:
-            algorithms['factorLinUCB'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = userNum, itemNum=itemNum, W = W, init='random', window_size = 1)  
+            algorithms['factorLinUCB'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = userNum, itemNum=itemNum, W = W, init='random', window_size = 1)  
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
             if args.load:

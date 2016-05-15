@@ -1,3 +1,4 @@
+import sys
 from conf import *     # it saves the address of data stored and where to save the data produced by algorithms
 import argparse # For argument parsing
 import time
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     algorithms = {}
     runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
     if args.load:
-
+        print 'load'
     elif args.alg:
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
@@ -266,4 +267,5 @@ if __name__ == '__main__':
             WriteStat()
         for alg_name, alg in algorithms.items():
             model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_' + timeRun                    
-            model_dump(alg, model_name) 
+            model_dump(alg, model_name)
+        sys.exit()  

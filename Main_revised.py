@@ -137,17 +137,37 @@ if __name__ == '__main__':
     algorithms = {}
 
     runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
+    if args.load:
+        fileSig, timeRun = args.load.split('__')
+        fileSig = fileSig+'_'
+        timeRun = '_'+timeRun
+        print (fileSig, timeRun)
+        with open(args.load +'.model', 'r') as fin:
+            obj = pickle.load(fin)
+        with open(args.load +'.txt', 'r') as fin:
+            finished_line = int(fin.readline().strip().split()[1])
+            print (finished_line)
+
     if args.alg:
         if args.alg == 'CoLinUCB':
             runCoLinUCB = True
-            algorithms['CoLin'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W)
+            if args.load:
+                algorithms['CoLin'] = obj
+            else:
+                algorithms['CoLin'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W)
         elif args.alg == 'CoLinUCBRankOne':
             runCoLinUCB = True
+            if args.load:
+                algorithms['CoLinRankOne'] = obj
+            else:
             algorithms['CoLinRankOne'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W, update='RankOne')
         elif args.alg == 'GOBLin':
             runGOBLin = True
         elif args.alg == 'LinUCB':
             runLinUCB = True
+            if args.load:
+                algorithms['LinUCB'] = obj
+            else:
             algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = OriginaluserNum)
         elif args.alg =='M_LinUCB':
             run_M_LinUCB = True
@@ -155,11 +175,20 @@ if __name__ == '__main__':
             run_Uniform_LinUCB = True
         elif args.alg == 'CFUCB':
             run_CFUCB = True
+            if args.load:
+                algorithms['CFUCB'] = obj
+            else:
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
         elif args.alg == 'factorLinUCB':
+            if args.load:
+                algorithms['factorLinUCB'] = obj
+            else:
             algorithms['factorLinUCB'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = userNum, itemNum=itemNum, W = W, init='random', window_size = 1)  
         elif args.alg == 'CFEgreedy':
             run_CFEgreedy = True
+            if args.load:
+                algorithms['CFEgreedy'] = obj
+            else:
             algorithms['CFEgreedy'] = CFEgreedyAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 200, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
         elif args.alg == 'SGDEgreedy':
             run_SGDEgreedy = True
@@ -167,6 +196,9 @@ if __name__ == '__main__':
                 dimension = 5
             else:
                 dimension = int(args.dimension)
+            if args.load:
+                algorithms['SGDEgreedy'] = obj
+            else:
             algorithms['SGDEgreedy'] = EgreedyContextualStruct(epsilon_init=200, userNum=OriginaluserNum, itemNum=itemNum, k=dimension, feature_dim = context_dimension, lambda_ = lambda_, init='random', learning_rate='constant')
         elif args.alg == 'PTS':
             run_PTS = True
@@ -178,6 +210,9 @@ if __name__ == '__main__':
                 dimension = 10
             else:
                 dimension = int(args.dimension)
+            if args.load:
+                algorithms['PTS'] = obj
+            else:
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
         elif args.alg == 'UCBPMF': 
             run_UCBPMF = True
@@ -185,12 +220,15 @@ if __name__ == '__main__':
                 dimension = 10
             else:
                 dimension = int(args.dimension)
-            algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
+            if args.load:
+                algorithms['UCBPMF'] = obj
+            else:
+                algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:
         args.alg = 'Random'
-        #runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= True
+    #runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= True
     
 
 
@@ -253,7 +291,7 @@ if __name__ == '__main__':
         f.write('\n')
     print (fileName, fileNameWrite)
 
-    tsave = 60*60*46 # Time interval for saving model.
+    tsave = 60*60*47 # Time interval for saving model.
     tstart = time.time()
     save_flag = 0
 

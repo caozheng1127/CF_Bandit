@@ -137,6 +137,10 @@ if __name__ == '__main__':
     articles_random = randomStruct()
     algorithms = {}
     runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = False
+
+    tsave = 60*60*47 # Time interval for saving model.
+    tstart = time.time()
+
     if args.load:
         print 'load'
     elif args.alg:
@@ -207,7 +211,8 @@ if __name__ == '__main__':
 
 
     for alg_name, alg in algorithms.items():
-        alg.learn_stats = articleAccess()
+        if not args.load:
+            alg.learn_stats = articleAccess()
   
     for dataDay in dataDays:
         fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID'
@@ -260,6 +265,11 @@ if __name__ == '__main__':
                 # if the batch has ended
                 if totalObservations%batchSize==0:
                     printWrite()
+                    tend = time.time()
+                    if tend-tstart>tsave:
+                        model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_' + timeRun                    
+                        model_dump(alg, model_name)
+                        tstart = tend
                 if totalObservations%statBatchSize==0:
                     WriteStat()
             #print stuff to screen and save parameters to file when the Yahoo! dataset file ends
@@ -268,4 +278,5 @@ if __name__ == '__main__':
         for alg_name, alg in algorithms.items():
             model_name = 'Yahoo_'+str(clusterNum)+'_'+alg_name+'_'+dataDay+'_' + timeRun                    
             model_dump(alg, model_name)
-        sys.exit()  
+            tstart = tend
+        # sys.exit()  

@@ -295,6 +295,7 @@ if __name__ == '__main__':
     tstart = time.time()
     save_flag = 0
 
+
     AlgReward = {}
     AlgPicked = {}
     AlgRegret = {}
@@ -302,7 +303,8 @@ if __name__ == '__main__':
         AlgReward[alg_name] = []
         AlgPicked[alg_name] = []
         AlgRegret[alg_name] = []
-        alg.reward = 0
+        if not args.load:
+            alg.reward = 0
 
     with open(fileName, 'r') as f:
         f.readline()

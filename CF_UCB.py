@@ -15,6 +15,10 @@ class CFUCBArticleStruct:
 		self.time = 0
 		if (init=="random"):
 			self.V = np.random.rand(self.d)
+			# self.V = np.random.normal(0,0.2,self.d)
+			# self.V = np.random.normal(0,0.5,self.d)
+			# self.V = np.random.normal(0,1,self.d)
+			# self.V = np.random.normal(0,2,self.d)
 		else:
 			self.V = np.zeros(self.d)
 

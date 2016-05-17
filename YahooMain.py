@@ -162,7 +162,7 @@ if __name__ == '__main__':
                 dimension = 5
             else:
                 dimension = int(args.dimension)
-            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random')
+            algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = clusterNum, itemNum=itemNum, init='random', window_size = 3)
         elif args.alg == 'factorLinUCB':
             run_factorLinUCB = True
             if not args.dimension:

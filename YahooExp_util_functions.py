@@ -193,7 +193,11 @@ def showheatmap(W):
     plt.colorbar()
     plt.show()
 
-def model_dump(obj, filename):
+def model_dump(obj, filename, line, day):
+    fout = open(filename +'.txt', 'w')
+    fout.write("day\t"+str(day))
+    fout.write("line\t"+str(linenum))
+    fout.close()    
     fout = open(filename +'.model', 'w')
     pickle.dump(obj, fout)
     fout.close()

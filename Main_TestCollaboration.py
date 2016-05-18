@@ -18,6 +18,7 @@ from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUse
 from LinUCB import LinUCBUserStruct, N_LinUCBAlgorithm, Hybrid_LinUCBAlgorithm
 from GOBLin import GOBLinSharedStruct
 
+from factorLinUCB import FactorLinUCBAlgorithm
 from CF_UCB import CFUCBAlgorithm
 from CFEgreedy import CFEgreedyAlgorithm
 from EgreedyContextual import EgreedyContextualStruct
@@ -83,6 +84,13 @@ if __name__ == '__main__':
     parser.add_argument('--line', type=int,
                         help='Stop at certain line number, debug use.')
 
+    # Cut type.
+    parser.add_argument('--cut', required=True, choices=['rand', 'max', 'max_observation'],
+                        help='Select graph cut type, could be rand, max or max_observation.')
+    # Cut type.
+    parser.add_argument('--select_node', choices=['top100','select100'],
+                        help='Select top 100 or select 50 from bottom 100 with top 50.')
+ 
     # Designate event file, default is processed_events_shuffled.dat
     parser.add_argument('--event', 
                         help='Designate event file. Default is processed_events_shuffled.dat')  
@@ -136,7 +144,7 @@ if __name__ == '__main__':
     FeatureVectors = readFeatureVectorFile(FeatureVectorsFileName)
     # Decide which algorithms to run.
     #Generate user feature vectors
-    userFeatureVectors = generateUserFeature(W)
+    # userFeatureVectors = generateUserFeature(W)
     # print userFeatureVectors
 
     algorithms = {}
@@ -155,6 +163,8 @@ if __name__ == '__main__':
             run_M_LinUCB = True
         elif args.alg == 'Uniform_LinUCB':
             run_Uniform_LinUCB = True
+        elif args.alg == 'factorLinUCB':
+            algorithms['factorLinUCB'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = userNum, itemNum=itemNum, W = W, init='random', window_size = 3)  
         elif args.alg == 'CFUCB':
             run_CFUCB = True
             algorithms['CFUCB'] = CFUCBAlgorithm(context_dimension = context_dimension, latent_dimension = latent_dimension, alpha = 0.2, alpha2 = 0.1, lambda_ = lambda_, n = OriginaluserNum, itemNum=itemNum, init='random')
@@ -180,6 +190,7 @@ if __name__ == '__main__':
                 dimension = int(args.dimension)
             algorithms['PTS'] = PTSAlgorithm(particle_num = particle_num, dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1)
         elif args.alg == 'Hybrid_LinUCB':
+            userFeatureVectors = generateUserFeature(W)
             algorithms['HybridLinUCB'] = Hybrid_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, userFeatureList=userFeatureVectors)
         elif args.alg == 'UCBPMF': 
             run_UCBPMF = True
@@ -193,16 +204,28 @@ if __name__ == '__main__':
     else:
         args.alg = 'Random'
         #runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= True
-    
 
-
-    FirstPartFileName = address + '/processed_events_shuffled_MFCollab_part'+args.train+'.dat'
-    SecondPartFileName = address + '/processed_events_shuffled_MFCollab_part2.dat'
-    
-    fileSig = 'TestCoMF_'+args.dataset+'_shuffled_Clustering_'+args.alg+'_train'+args.train+'_'
-
-    articles_random = randomStruct()
+    fileSig = 'TestCo'+args.dataset+'_'+str(nClusters)+'_shuffled_Clustering_'+args.alg+'_Diagnol_'+args.diagnol+'_'+args.cut+'_'
+    fileName = address + "/processed_events_shuffled.dat"
     fileNameWrite = os.path.join(save_address, fileSig + timeRun + '.csv')
+    if args.select_node:
+        if args.select_node=='top100':
+            num = 'top100'
+        if args.select_node=='select100':
+            num = 'select100'    
+    else:  
+        num = str(nClusters)
+    FirstPartFileName = address + "/processed_events_shuffled_"+num+'_'+args.cut+'_part1.dat'
+    SecondPartFileName = address + "/processed_events_shuffled_"+num+'_'+args.cut+'_part2.dat'
+
+    # FirstPartFileName = address + '/processed_events_shuffled_MFCollab_part'+args.train+'.dat'
+    # SecondPartFileName = address + '/processed_events_shuffled_MFCollab_part2.dat'
+    
+    # fileSig = 'TestCoMF_'+args.dataset+'_shuffled_Clustering_'+args.alg+'_train'+args.train+'_'
+    # fileNameWrite = os.path.join(save_address, fileSig + timeRun + '.csv')
+    
+    articles_random = randomStruct()
+    
     #FeatureVectorsFileName =  LastFM_address + '/Arm_FeatureVectors.dat'
 
     # put some new data in file for readability
@@ -215,7 +238,7 @@ if __name__ == '__main__':
         f.write('\n')
     print (fileNameWrite)
 
-    tsave = 60*60*23 # Time interval for saving model.
+    tsave = 60*60*47 # Time interval for saving model.
     tstart = time.time()
     save_flag = 0
 
@@ -248,7 +271,7 @@ if __name__ == '__main__':
             shuffle(articlePool)
 
             for alg_name, alg in algorithms.items():
-                if alg_name in ['HybridLinUCB']:
+                if alg_name in ['CoLin', 'CoLinRankOne','factorLinUCB', 'HybridLinUCB']:
                     currentuserID = label[userID]
                     # print currentuserID
                 else:
@@ -268,6 +291,7 @@ if __name__ == '__main__':
         AlgRegret[alg_name] = []
         alg.reward = 0
     totalObservations = 0
+    save_flag = 0
     with open(SecondPartFileName, 'r') as f:
         f.readline()
         # reading file line ie observations running one at a time
@@ -292,7 +316,7 @@ if __name__ == '__main__':
                 articles_random.reward +=1
 
             for alg_name, alg in algorithms.items():
-                if alg_name in ['HybridLinUCB']:
+                if alg_name in ['CoLin', 'CoLinRankOne','factorLinUCB', 'HybridLinUCB']:
                     currentuserID = label[userID]
                     # print currentuserID
                 else:
@@ -310,6 +334,11 @@ if __name__ == '__main__':
                 AlgPicked[alg_name].append(pickedArticle.id)
                 regret = OptimalReward - reward 
                 AlgRegret[alg_name].append(regret) 
+
+                if save_flag:
+                    model_name = 'TestCo_'+args.dataset+'_'+str(nClusters)+'_shuffled_Clustering_'+alg_name+'_Diagnol_'+args.diagnol+'_' + timeRun
+                    model_dump(alg, model_name, i)
+            save_flag = 0
             # if the batch has ended
             if totalObservations%batchSize==0:
                 printWrite()

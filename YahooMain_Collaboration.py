@@ -214,7 +214,9 @@ if __name__ == '__main__':
             fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
             with open(fileName, 'r') as f:
                 # reading file line ie observations running one at a time
-                for line in f:
+                for i, line in enumerate(f):
+                    if (i > 100000):
+                        break
                     tim, article_chosen, click, currentUserID, pool_articles = parseLine_ID(line)
                     for article in pool_articles:
                         article_id = int(article[0])

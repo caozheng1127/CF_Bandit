@@ -210,7 +210,7 @@ if __name__ == '__main__':
     #Train
     if (not args.pretrain or args.pretrain == True):
         for dataDay in dataDays[:]:
-            fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID.max_observation.part1'
+            fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.userID.max_observation.part1'
             fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
             with open(fileName, 'r') as f:
                 # reading file line ie observations running one at a time
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     #Test
     tcf_observations = []
     for dataDay in dataDays[:]:
-        fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.'+ str(userNum) +'.userID.max_observation.part2'
+        fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.userID.max_observation.part2'
         fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
 
         fileNameWriteStatTP = os.path.join(Yahoo_save_address, 'Stat_TP'+ fileSig + dataDay + timeRun + '.csv')

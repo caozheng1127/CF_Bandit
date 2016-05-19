@@ -22,8 +22,8 @@ class GOBLinSharedStruct:
 		self.STBigWInv = sqrtm( np.linalg.inv(np.kron(W, np.identity(n=featureDimension))) )
 		self.STBigW = sqrtm(np.kron(W, np.identity(n=featureDimension)))
 	def updateParameters(self, articlePicked, click, userID):
-		featureVectorM = np.zeros(shape =(len(articlePicked.featureVector), self.userNum))
-		featureVectorM.T[userID] = articlePicked.featureVector
+		featureVectorM = np.zeros(shape =(len(articlePicked.contextFeatureVector), self.userNum))
+		featureVectorM.T[userID] = articlePicked.contextFeatureVector
 		featureVectorV = vectorize(featureVectorM)
 
 		CoFeaV = np.dot(self.STBigWInv, featureVectorV)
@@ -35,8 +35,8 @@ class GOBLinSharedStruct:
 		self.theta = np.dot(self.AInv, self.b)
 	def getProb(self,alpha , article, userID):
 		
-		featureVectorM = np.zeros(shape =(len(article.featureVector), self.userNum))
-		featureVectorM.T[userID] = article.featureVector
+		featureVectorM = np.zeros(shape =(len(article.contextFeatureVector), self.userNum))
+		featureVectorM.T[userID] = article.contextFeatureVector
 		featureVectorV = vectorize(featureVectorM)
 
 		CoFeaV = np.dot(self.STBigWInv, featureVectorV)

@@ -99,9 +99,9 @@ if __name__ == '__main__':
     yahooData_address = str(args.Yahoo_save_address)
     DiagType = str(args.DiagType)
     
-    timeRun = datetime.datetime.now().strftime('_%m_%d_%H_%M')     # the current data time
+    timeRun = datetime.datetime.now().strftime('_%m_%d_%H_%M_%S')     # the current data time
     dataDays = ['01']#, '02', '03', '04', '05', '06', '07', '08', '09', '10']
-    fileSig = 'TestCo'+str(algName)+str(clusterNum)+ 'SP'+ str(SparsityLevel)+algName
+    fileSig = str(algName)+str(clusterNum)+ 'SP'+ str(SparsityLevel)+algName
     batchSize = 1000
     statBatchSize = 200000                            # size of one batch
     
@@ -230,7 +230,10 @@ if __name__ == '__main__':
     tcf_observations = []
     for dataDay in dataDays[:]:
         fileName = yahooData_address + "/ydata-fp-td-clicks-v1_0.200905" + dataDay    +'.userID.max_observation.part2'
-        fileNameWrite = os.path.join(Yahoo_save_address, fileSig + dataDay + timeRun + '.csv')
+        if (not args.pretrain or args.pretrain == True):
+            fileNameWrite = os.path.join(Yahoo_save_address, 'TestCo_'+fileSig + dataDay + timeRun + '.csv')
+        else:
+            fileNameWrite = os.path.join(Yahoo_save_address, 'Cold_'+fileSig + dataDay + timeRun + '.csv')
 
         fileNameWriteStatTP = os.path.join(Yahoo_save_address, 'Stat_TP'+ fileSig + dataDay + timeRun + '.csv')
         fileNameWriteStatTN = os.path.join(Yahoo_save_address, 'Stat_TN'+ fileSig + dataDay + timeRun + '.csv')

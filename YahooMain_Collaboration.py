@@ -13,7 +13,7 @@ from YahooExp_util_functions import *
 
 
 from CoLin import AsyCoLinUCBUserSharedStruct, AsyCoLinUCBAlgorithm, CoLinUCBUserSharedStruct
-from GOBLin import GOBLinSharedStruct
+from GOBLin import GOBLinSharedStruct, GOBLinAlgorithm
 from LinUCB import N_LinUCBAlgorithm, Hybrid_LinUCBAlgorithm#LinUCBUserStruct, Hybrid_LinUCBUserStruct
 from factorLinUCB import FactorLinUCBAlgorithm
 from CF_UCB import CFUCBAlgorithm
@@ -135,7 +135,7 @@ if __name__ == '__main__':
     algorithms = {}
     runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB= run_CFUCB = run_CFEgreedy = run_SGDEgreedy = run_PTS = run_TCF = False
     if args.alg:
-        if args.alg == 'CoLinUCB':
+        if args.alg == 'CoLinUCB' or args.alg == 'CoLin':
             runCoLinUCB = True
             algorithms['CoLin'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = userNum, W = W)
         elif args.alg == 'GOBLin':

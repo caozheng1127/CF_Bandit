@@ -23,6 +23,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn import cluster
 from factorLinUCB import FactorLinUCBAlgorithm
 from CoLin import AsyCoLinUCBAlgorithm
+from CLUB import *
 
 class simulateOnlineData(object):
 	def __init__(self, context_dimension, latent_dimension, training_iterations, testing_iterations, testing_method, plot, articles, users, 
@@ -436,7 +437,7 @@ if __name__ == '__main__':
 
 	# Matrix parameters
 	matrixNoise = 0.01
-	sparseLevel = 10  # if smaller or equal to 0 or larger or enqual to usernum, matrix is fully connected
+	sparseLevel = n_users  # if smaller or equal to 0 or larger or enqual to usernum, matrix is fully connected
 
 
 	# Parameters for GOBLin
@@ -460,8 +461,8 @@ if __name__ == '__main__':
 	# articles = AM.simulateArticlePool()
 	# AM.saveArticles(articles, articlesFilename, force=False)
 	articles = AM.loadArticles(articlesFilename)
-	context_dimension = 25
-	latent_dimension = 0
+	# context_dimension = 25
+	# latent_dimension = 0
 	#PCA
 	pca_articles(articles, 'random')
 
@@ -544,7 +545,7 @@ if __name__ == '__main__':
 	if args.alg == 'UCBPMF':
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
 	if args.alg == 'factorLinUCB':
-		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='random', window_size = 1)	
+		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.05, alpha2 = 0.025, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='random', window_size = -1)	
 	if args.alg == 'CoLin':
 		algorithms['LinUCB'] = N_LinUCBAlgorithm(dimension = context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users)
 		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
@@ -558,5 +559,8 @@ if __name__ == '__main__':
 		algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = 10, n = n_users, itemNum=n_articles, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
 		algorithms['CoLinUCB'] = AsyCoLinUCBAlgorithm(dimension=context_dimension, alpha = alpha, lambda_ = lambda_, n = n_users, W = simExperiment.getW())
 		algorithms['FactorLinUCBAlgorithm'] = FactorLinUCBAlgorithm(context_dimension = context_dimension, latent_dimension = 5, alpha = 0.1, alpha2 = 0.1, lambda_ = lambda_, n = n_users, itemNum=n_articles, W = simExperiment.getW(), init='zero', window_size = -1)	
+
+	if algName == 'CLUB':
+		algorithms['CLUB'] = CLUBAlgorithm(dimension =dimension,alpha = alpha, lambda_ = lambda_, n = n_users, alpha_2 = 0.5, cluster_init = 'Erdos-Renyi')	
 
 	simExperiment.runAlgorithms(algorithms)

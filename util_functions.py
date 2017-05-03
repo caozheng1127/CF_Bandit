@@ -70,3 +70,40 @@ def matrixize(V, C_dimension):
 	return W
 	# To-do: use numpy built-in function reshape.
 	# return np.reshape(V, (C_dimension, int(len(V)/C_dimension)))
+
+def fun(x, y, theta):
+	obj = (1/2.0)*(np.dot(np.transpose(x), theta) - click)**2
+	regularization = 0
+	return obj + regularization
+
+def evaluateGradient(x,y,theta, lambda_, regu ):
+	if regu == 'l1':
+		grad = x*(np.dot(np.transpose(x),theta) - y) + lambda_*np.sign(theta)  #Lasso 
+	elif regu == 'l2':
+		grad = x*(np.dot(np.transpose(x),theta) - y) + lambda_*theta           # Ridge                      
+	return grad
+
+def getcons(dim):
+	cons = []
+	cons.append({'type': 'eq','fun': lambda x : np.sum(x)-1})
+
+	for i in range(dim):
+		cons.append({'type' : 'ineq','fun' : lambda  x: x[i] })
+		cons.append({'type' : 'ineq','fun' : lambda x: 1-x[i]})
+	
+	return tuple(cons)
+def getbounds(dim):
+	bnds = []
+	for i in range(dim):
+		bnds.append((0,1))
+	return tuple(bnds)
+
+
+class observation_entry():
+	def __init__(self, user, articlePool, OptimalReward, noise):
+		self.user = user
+		self.articlePool = articlePool
+		self.OptimalReward = OptimalReward
+		self.noise = noise
+
+

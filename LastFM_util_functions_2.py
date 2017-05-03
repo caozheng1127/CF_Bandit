@@ -257,3 +257,13 @@ def model_dump(obj, filename, linenum):
     fout = open(filename +'.model', 'w')
     pickle.dump(obj, fout)
     fout.close()
+
+def getcons(dim):
+    cons = []
+    cons.append({'type': 'eq','fun': lambda x : np.sum(x)-1})
+
+    for i in range(dim):
+        cons.append({'type' : 'ineq','fun' : lambda  x: x[i] })
+        cons.append({'type' : 'ineq','fun' : lambda x: 1-x[i]})
+    
+    return tuple(cons)

@@ -25,6 +25,9 @@ from EgreedyContextual import EgreedyContextualStruct
 from PTS import PTSAlgorithm
 from UCBPMF import UCBPMFAlgorithm
 
+from W_Alg import LearnWAlgorithm
+from W_Alg_L1 import LearnWAlgorithm_l1
+
 class Article():    
     def __init__(self, aid, FV=None):
         self.id = aid
@@ -224,6 +227,13 @@ if __name__ == '__main__':
                 algorithms['UCBPMF'] = obj
             else:
                 algorithms['UCBPMF'] = UCBPMFAlgorithm(dimension = dimension, n = OriginaluserNum, itemNum=itemNum, sigma = np.sqrt(.5), sigmaU = 1, sigmaV = 1, alpha = 0.1) 
+        elif args.alg == 'LearnWl1':
+            run_LearnWl1 = True
+            if args.load:
+                algorithms['LearnWl1'] = obj
+            else:
+                algorithms['LearnWl1'] = LearnWAlgorithm_l1(dimension = context_dimension, alpha = 0.2, lambda_ = lambda_,  n = userNum, W = W, windowSize = userNum, RankoneInverse=True)
+
         elif args.alg == 'ALL':
             runCoLinUCB = runGOBLin = runLinUCB = run_M_LinUCB = run_Uniform_LinUCB=True
     else:
@@ -332,7 +342,7 @@ if __name__ == '__main__':
                 articles_random.reward +=1
 
             for alg_name, alg in algorithms.items():
-                if alg_name in ['CoLin', 'CoLinRankOne','factorLinUCB']:
+                if alg_name in ['CoLin', 'CoLinRankOne','factorLinUCB', 'LearnW', 'LearnWl1']:
                     currentUserID = label[userID]
                 else:
                     currentUserID = userID

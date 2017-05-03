@@ -15,7 +15,7 @@ from numpy import linalg as LA
 from scipy.optimize import minimize
 from scipy.optimize import fmin_slsqp
 
-class WStruct:
+class WStruct_l1:
 	def __init__(self, featureDimension, lambda_,  userNum, W, windowSize, RankoneInverse):
 		self.windowSize = windowSize
 		self.counter = 0
@@ -78,9 +78,15 @@ class WStruct:
 				if len(self.W_X_arr[i]) !=0:
 					def fun(w):
 						w = np.asarray(w)
-						return np.sum((np.dot(self.W_X_arr[i], w) - self.W_y_arr[i])**2, axis = 0) + self.lambda_*np.linalg.norm(w,2)
+						return np.sum((np.dot(self.W_X_arr[i], w) - self.W_y_arr[i])**2, axis = 0) + self.lambda_*np.linalg.norm(w,1)
 						#return np.sum((np.dot(self.W_X_arr[i], w) - self.W_y_arr[i])**2, axis = 0) + self.lambda_*np.linalg.norm(w-self.TrueW,2)
 
+					def evaluateGradient(w):
+						w = np.asarray(w)
+						X = np.asarray(self.W_X_arr[i])
+						y = np.asarray(self.W_y_arr[i])
+						grad = np.dot(np.transpose(X) , ( np.dot(X,w)- y)) + self.lambda_ * np.sign(w)
+						return grad
 
 					current = self.W.T[i]
 					res = minimize(fun, current, constraints = getcons(len(self.W)), method = 'SLSQP', bounds=getbounds(len(self.W)), options={'disp': False})
@@ -109,9 +115,9 @@ class WStruct:
 
 
 		
-class LearnWAlgorithm:
+class LearnWAlgorithm_l1:
 	def __init__(self, dimension, alpha, lambda_, n, W,  windowSize, RankoneInverse = False):  # n is number of users
-		self.USERS = WStruct(dimension, lambda_, n, W, windowSize, RankoneInverse)
+		self.USERS = WStruct_l1(dimension, lambda_, n, W, windowSize, RankoneInverse)
 		self.dimension = dimension
 		self.alpha = alpha
 
